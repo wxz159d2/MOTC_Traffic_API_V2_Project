@@ -10,8 +10,16 @@ from resources.v1.traffic_data_upload import Upload
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/traffic_data"
+
 api = Api(app)
-swagger = Swagger(app)
+# API版面風格管理
+swagger_config = Swagger.DEFAULT_CONFIG
+swagger_config['title'] = 'CECI-運輸大數據平台-V1'
+swagger_config['description'] = '路況資料整合系統'
+swagger_config['version'] = '0.1.0'
+swagger_config['termsOfService'] = ''
+swagger = Swagger(app, config=swagger_config)
+
 mongo = PyMongo(app)
 
 api.add_resource(Get, "/v1/get/<string:xxx>/", endpoint="get")
