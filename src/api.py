@@ -19,4 +19,5 @@ api.add_resource(Upload, "/v1/upload/", endpoint="upload")
 
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False
+    app.config.update(RESTFUL_JSON=dict(ensure_ascii=False))
     app.run(host='0.0.0.0', debug=True)
