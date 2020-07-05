@@ -22,7 +22,7 @@ swagger = Swagger(app, config=swagger_config)
 
 mongo = PyMongo(app)
 
-api.add_resource(Get, "/v1/get/<string:xxx>/", endpoint="get")
+api.add_resource(Get, "/v1/get/<authorityCode>/<dataType>/<format>/", endpoint="get")
 api.add_resource(Upload, "/v1/upload/", endpoint="upload")
 
 if __name__ == '__main__':
