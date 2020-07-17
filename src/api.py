@@ -22,8 +22,8 @@ swagger = Swagger(app, config=swagger_config)
 
 mongo = PyMongo(app)
 
-api.add_resource(Get, "/v1/get/<authorityCode>/<dataType>/<format>/", endpoint="get")
-api.add_resource(Upload, "/v1/upload/", endpoint="upload")
+api.add_resource(Get, "/v1/traffic_data/<authoritycode>/<data_type>/", endpoint="get")
+api.add_resource(Upload, "/v1/traffic_data/", endpoint="upload")
 
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False
