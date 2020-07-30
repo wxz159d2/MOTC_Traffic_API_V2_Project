@@ -4,3 +4,4 @@ Flask==1.1.2
 Flask-RESTful==0.3.8
 flasgger==0.9.4
 Flask-PyMongo==2.3.0
+pyspark==3.0.0

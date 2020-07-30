@@ -9,29 +9,29 @@ class Get(Resource):
         self.parser.add_argument('format', type=str, required=True, help='Param error: Format',
                                  choices=['JSON', 'XML'])
 
-    def get(self, authoritycode, data_type):
+    def get(self, authority, dataclass):
         # flasgger 預設入口 http://localhost:5000/apidocs
         """
         本API提供查詢OOOO格式資料。
-        命令格式： /v1/traffic_data/{authoritycode}/{data_type}/?format={format}
+        命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}?format={format}
         ---
         tags:
           - Traffic Get API
         parameters:
           - in: path
-            name: authoritycode
-            type: string
-            required: true
-            description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
-            enum: ['NFB', 'THB', 'TNN']
-          - in: path
-            name: data_type
+            name: dataclass
             type: string
             required: true
             description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
             enum: ['VD', 'VDLive', 'CCTV', 'CMS', 'CMSLive', 'ETag', 'ETagPair', 'ETagPairLive',
                    'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
                    'News']
+          - in: path
+            name: authority
+            type: string
+            required: true
+            description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
+            enum: ['NFB', 'THB', 'TNN']
           - in: query
             name: format
             type: string
@@ -48,8 +48,8 @@ class Get(Resource):
 
         return {
                    'message': 'OK',
-                   'AuthorityCode': authoritycode,
-                   'DataType': data_type,
+                   'authority': authority,
+                   'dataclass': dataclass,
                    'Format': format
                }, 200
 
