@@ -46,6 +46,12 @@ class Get(Resource):
         args = self.parser.parse_args()
         format = args['format']
 
+        # pyspark讀取語法
+        from api import spark
+        df = spark.read.format("mongo").option("spark.mongodb.input.uri",
+                                               "mongodb://127.0.0.1:27017/tisv.vd_value").load()
+        df.show()
+
         return {
                    'message': 'OK',
                    'authority': authority,

@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 from flask import request
 from flask_restful import Resource, reqparse
-from pyspark.python.pyspark.shell import spark
 
 
 class Upload(Resource):
@@ -57,12 +56,13 @@ class Upload(Resource):
         args = self.parser.parse_args()
         format = args['format']
 
+        # pyspark讀取語法
+        # 輸入JSON文件
+        from api import spark, sc
         data = request.get_json()
-
-        people = spark.createDataFrame(
-            [("Bilbo Baggins", 50), ("Gandalf", 1000), ("Thorin", 195), ("Balin", 178), ("Kili", 77),
-             ("Dwalin", 169), ("Oin", 167), ("Gloin", 158), ("Fili", 82), ("Bombur", None)], ["name", "age"])
-        people.write.format("mongo").mode("append").save()
+        df = spark.read.json(sc.parallelize([data]))
+        df.write.format("mongo").mode("append").option("spark.mongodb.output.uri",
+                                                       "mongodb://127.0.0.1:27017/traffic_data_nfb.vd").save()
 
         return {
                    'message': 'ok',

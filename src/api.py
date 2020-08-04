@@ -25,13 +25,15 @@ swagger = Swagger(app, config=swagger_config)
 # 格式是："mongodb://IP:Port/database.collection"
 input_uri = "mongodb://127.0.0.1:27017/traffic_data_nfb.vd"
 output_uri = "mongodb://127.0.0.1:27017/traffic_data_nfb.vd"
+# 要把mongo-spark-connector_2.12-3.0.0.jar和mongo-java-driver-3.12.6.jar放在\pyspark\jars裡
 spark = SparkSession.builder \
-    .master("local") \
+    .master("local[*]") \
     .appName("CECI_traffic_data") \
     .config("spark.mongodb.input.uri", input_uri) \
     .config("spark.mongodb.output.uri", output_uri) \
     .config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector_2.12:3.0.0") \
     .getOrCreate()
+sc = spark.sparkContext
 
 api.add_resource(Get, "/v1/traffic_data/class/<dataclass>/authority/<authority>", endpoint="get")
 api.add_resource(Upload, "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2")
