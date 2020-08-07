@@ -9,8 +9,7 @@ class Get(Resource):
         self.parser.add_argument('format', type=str, required=True, help='Param error: Format',
                                  choices=['JSON', 'XML'])
 
-    def get(self, authority, dataclass):
-        # flasgger 預設入口 http://localhost:5000/apidocs
+    def get(self, dataclass, authority):
         """
         本API提供查詢OOOO格式資料。
         命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}?format={format}
