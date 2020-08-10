@@ -35,6 +35,8 @@ sc = spark.sparkContext
 # flask_restful資源設定
 api.add_resource(Get, "/v1/traffic_data/class/<dataclass>/authority/<authority>", endpoint="get")
 api.add_resource(Upload, "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2")
+api.add_resource(Upload_repeat_check,
+                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/repeat_check")
 api.add_resource(Upload_one_record,
                  "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/one_record")
 
