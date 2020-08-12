@@ -41,13 +41,13 @@ class Upload(Resource):
         pass
 
     def post(self, dataclass, authority):
-        # test com: curl http://127.0.0.1:5000/v1/traffic_data/class/VDLive/authority/NFB/standard/MOTC_traffic_v2?format=JSON/ -X POST -d {"VDID":"VD-N3-S-236-I-WS-1X-南下入口2","SubAuthorityCode":"NFB-CR","LinkFlows":[{"LinkID":"0000301047050M","Lanes":[{"LaneID":0,"LaneType":2,"Speed":61.0,"Occupancy":2.0,"Vehicles":[{"VehicleType":"S","Volume":3,"Speed":61.0},{"VehicleType":"L","Volume":1,"Speed":61.0},{"VehicleType":"T","Volume":0,"Speed":0.0}]}]}],"Status":0,"DataCollectTime":"2020-07-02T15:17:00+08:00"}
         """
-        本API提供上傳交通部「即時路況資料標準(V2.0)」MOTC Traffic API V2格式資料：資料集批次寫入模式(處理速度快，但含重複資料則整批廢棄)。
+        [資料集批次寫入模式]
+        處理速度快，但含重複資料則整批廢棄
         命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}/standard/MOTC_traffic_v2 -X POST -d {data}
         ---
         tags:
-          - Traffic Upload API
+          - MOTC Traffic v2 Upload API (提供上傳交通部「即時路況資料標準(V2.0)」格式資料)
         parameters:
           - in: path
             name: dataclass
@@ -127,11 +127,12 @@ class Upload_repeat_check(Resource):
 
     def post(self, dataclass, authority):
         """
-        本API提供上傳交通部「即時路況資料標準(V2.0)」MOTC Traffic API V2格式資料：資料集重複驗證模式(處理速度較慢，可逐筆寫入未重複資料)。
+        [資料集重複驗證模式]
+        處理速度較慢，可逐筆寫入未重複資料
         命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}/standard/MOTC_traffic_v2/repeat_check -X POST -d {data}
         ---
         tags:
-          - Traffic Upload API
+          - MOTC Traffic v2 Upload API (提供上傳交通部「即時路況資料標準(V2.0)」格式資料)
         parameters:
           - in: path
             name: dataclass
@@ -212,11 +213,12 @@ class Upload_one_record(Resource):
 
     def post(self, dataclass, authority):
         """
-        本API提供上傳交通部「即時路況資料標準(V2.0)」MOTC Traffic API V2格式資料：單筆資料模式(僅可寫入未重複資料)。
+        [單筆資料模式]
+        僅可寫入未重複資料
         命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}/standard/MOTC_traffic_v2/one_record -X POST -d {data}
         ---
         tags:
-          - Traffic Upload API
+          - MOTC Traffic v2 Upload API (提供上傳交通部「即時路況資料標準(V2.0)」格式資料)
         parameters:
           - in: path
             name: dataclass

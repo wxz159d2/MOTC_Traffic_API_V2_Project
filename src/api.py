@@ -5,6 +5,7 @@ from flask import Flask
 from flask_restful import Api
 from pyspark.sql import SparkSession
 
+from resources.v1.traffic_data_converter import *
 from resources.v1.traffic_data_get import *
 from resources.v1.traffic_data_upload import *
 
@@ -34,11 +35,13 @@ sc = spark.sparkContext
 
 # flask_restful資源設定
 api.add_resource(Get, "/v1/traffic_data/class/<dataclass>/authority/<authority>", endpoint="get")
-api.add_resource(Upload, "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2")
+api.add_resource(Upload, "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/")
 api.add_resource(Upload_repeat_check,
                  "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/repeat_check")
 api.add_resource(Upload_one_record,
                  "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/one_record")
+api.add_resource(xml_to_json,
+                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/xml_to_json")
 
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False
