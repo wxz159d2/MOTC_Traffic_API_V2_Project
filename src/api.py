@@ -34,14 +34,18 @@ spark = SparkSession.builder \
 sc = spark.sparkContext
 
 # flask_restful資源設定
-api.add_resource(Get, "/v1/traffic_data/class/<dataclass>/authority/<authority>", endpoint="get")
-api.add_resource(Upload, "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/")
+api.add_resource(Get_t2_one_record,
+                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/oid/<oid>/date/<date>/standard/MOTC_traffic_v2/method/one_record")
+api.add_resource(Upload_batch,
+                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/method/batch")
 api.add_resource(Upload_repeat_check,
-                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/repeat_check")
-api.add_resource(Upload_one_record,
-                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/one_record")
-api.add_resource(xml_to_json,
-                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/xml_to_json")
+                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/method/repeat_check")
+api.add_resource(Upload_one_record_live,
+                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/method/one_record")
+api.add_resource(Upload_one_record_static,
+                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/update/<date>/standard/MOTC_traffic_v2/method/one_record")
+api.add_resource(Converter_batch_xml_to_json,
+                 "/v1/traffic_data/class/<dataclass>/standard/MOTC_traffic_v2/method/batch_xml_to_json")
 
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False
