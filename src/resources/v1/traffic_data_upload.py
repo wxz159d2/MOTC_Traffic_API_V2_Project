@@ -3,6 +3,7 @@
 # 以交通部「即時路況資料標準(V2.0)」上傳的方法
 # 寫入目標MongoDB之資料表，要以下命令建立唯一索引(以VD為例)
 #     db.vdlive.createIndex({"VDID":1,"DataCollectTime":1},{unique: true})
+#     db.vd.createIndex({"VDID":1,"UpdateTime":1},{unique: true})
 
 from flask import request
 from flask_restful import Resource, reqparse
@@ -317,7 +318,7 @@ class Upload_one_record_static(Resource):
 
     def post(self, dataclass, authority, date):
         """
-        [單筆動靜資料模式]
+        [單筆靜態資料模式]
         僅可寫入未重複資料
         命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}/update/{date}/standard/MOTC_traffic_v2/method/one_record -X POST -d {data}
         ---

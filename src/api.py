@@ -36,6 +36,8 @@ sc = spark.sparkContext
 # flask_restful資源設定
 api.add_resource(Get_t2_one_record,
                  "/v1/traffic_data/class/<dataclass>/authority/<authority>/oid/<oid>/date/<date>/standard/MOTC_traffic_v2/method/one_record")
+api.add_resource(Get_t2_time_range,
+                 "/v1/traffic_data/class/<dataclass>/authority/<authority>/oid/<oid>/date/<sdate>/to/<edate>/standard/MOTC_traffic_v2/method/time_range")
 api.add_resource(Upload_batch,
                  "/v1/traffic_data/class/<dataclass>/authority/<authority>/standard/MOTC_traffic_v2/method/batch")
 api.add_resource(Upload_repeat_check,
