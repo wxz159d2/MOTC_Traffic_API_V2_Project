@@ -1,7 +1,10 @@
 # -*- coding: UTF-8 -*-
 
-from flask import request
+import json
+import xml.etree.cElementTree as ET
 
+import xmltodict
+from flask import request
 from flask_restful import Resource, reqparse
 
 dataclass_record_name = {
@@ -20,7 +23,7 @@ dataclass_record_name = {
     'CVPLiveTraffic': 'CVPLiveTraffics',
     'Section': 'Sections',
     'SectionLink': 'SectionLinks',
-    'LiveTraffic': 'LiveTraffics',  # 依標準可用LinkID填列，未見有機關使用，暫未開發
+    'LiveTraffic': 'LiveTraffics',
     'CongestionLevel': 'CongestionLevels',
     'SectionShape': 'SectionShapes',
     'News': 'Newses'
@@ -43,7 +46,7 @@ class Converter_batch_xml_to_json(Resource):
         """
         [路況標準2.0][資料集批次轉換json模式]
         適用一組「即時路況資料標準(V2.0)」xml資料轉換json
-        命令格式： /v1/traffic_data/class/{dataclass}/standard/MOTC_traffic_v2/method/batch_xml_to_json -X POST -d {data}
+        命令格式： /v1/traffic_data/class/{dataclass}/standard/MOTC_traffic_v2/method/batch/xml_to_json -X POST -d {data}
         ---
         tags:
           - Traffic Data Converter API (資料轉換工具API)
@@ -58,9 +61,9 @@ class Converter_batch_xml_to_json(Resource):
             required: true
             description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
             enum: ['VD', 'VDLive', 'CCTV', 'CMS', 'CMSLive', 'AVI', 'AVIPair', 'AVIPairLive',
-                                          'ETag', 'ETagPair', 'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
-                                          'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
-                                          'News']
+                   'ETag', 'ETagPair', 'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
+                   'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
+                   'News']
           - in: body
             name: data
             required: true
@@ -78,9 +81,10 @@ class Converter_batch_xml_to_json(Resource):
         # 參數轉小寫處裡
         dataclass_lower = dataclass.lower()
 
-        # 輸入JSON文件
-        data = request.get_json()
-        one_records = data[dataclass_record_name[dataclass]]
+        # 輸入XML文件
+        data = request.data
+        tree = ET.ElementTree(data)
+        one_records = json.dumps(xmltodict.parse(data))
 
         message = 'upload succeeded'
 

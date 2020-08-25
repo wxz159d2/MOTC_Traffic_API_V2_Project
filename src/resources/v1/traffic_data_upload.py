@@ -1,9 +1,28 @@
 # -*- coding: UTF-8 -*-
 
 # 以交通部「即時路況資料標準(V2.0)」上傳的方法
-# 寫入目標MongoDB之資料表，要以下命令建立唯一索引(以VD為例)
-#     db.vdlive.createIndex({"VDID":1,"DataCollectTime":1},{unique: true})
-#     db.vd.createIndex({"VDID":1,"UpdateTime":1},{unique: true})
+# 寫入目標MongoDB之資料表，要以下命令建立唯一索引
+"""
+db.vd.createIndex({"VDID":1,"UpdateTime":1},{unique: true})
+db.vdlive.createIndex({"VDID":1,"DataCollectTime":1},{unique: true})
+db.cctv.createIndex({"CCTVID":1,"UpdateTime":1},{unique: true})
+db.cms.createIndex({"CMSID":1,"UpdateTime":1},{unique: true})
+db.cmslive.createIndex({"CMSID":1,"DataCollectTime":1},{unique: true})
+db.avi.createIndex({"AVIID":1,"UpdateTime":1},{unique: true})
+db.avipair.createIndex({"AVIPairID":1,"UpdateTime":1},{unique: true})
+db.avipairlive.createIndex({"AVIPairID":1,"DataCollectTime":1},{unique: true})
+db.etag.createIndex({"ETagGantryID":1,"UpdateTime":1},{unique: true})
+db.etagpair.createIndex({"ETagPairID":1,"UpdateTime":1},{unique: true})
+db.etagpairlive.createIndex({"ETagPairID":1,"DataCollectTime":1},{unique: true})
+db.gvplivetraffic.createIndex({"SectionID":1,"DataCollectTime":1},{unique: true})
+db.cvplivetraffic.createIndex({"SectionID":1,"DataCollectTime":1},{unique: true})
+db.section.createIndex({"SectionID":1,"UpdateTime":1},{unique: true})
+db.sectionlink.createIndex({"SectionID":1,"UpdateTime":1},{unique: true})
+db.livetraffic.createIndex({"SectionID":1,"DataCollectTime":1},{unique: true})
+db.congestionlevel.createIndex({"CongestionLevelID":1,"UpdateTime":1},{unique: true})
+db.sectionshape.createIndex({"SectionID":1,"UpdateTime":1},{unique: true})
+db.news.createIndex({"NewsID":1,"UpdateTime":1},{unique: true})
+"""
 
 from flask import request
 from flask_restful import Resource, reqparse
@@ -26,7 +45,7 @@ dataclass_record_name = {
     'CVPLiveTraffic': 'CVPLiveTraffics',
     'Section': 'Sections',
     'SectionLink': 'SectionLinks',
-    'LiveTraffic': 'LiveTraffics',  # 依標準可用LinkID填列，未見有機關使用，暫未開發
+    'LiveTraffic': 'LiveTraffics',
     'CongestionLevel': 'CongestionLevels',
     'SectionShape': 'SectionShapes',
     'News': 'Newses'
@@ -36,41 +55,41 @@ dataclass_record_name = {
 class Upload_batch(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
+        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
+                                 choices=['NFB', 'THB', 'TNN'])
         self.parser.add_argument('dataclass', type=str, required=False, help='Param error: dataclass',
                                  choices=['VD', 'VDLive', 'CCTV', 'CMS', 'CMSLive', 'AVI', 'AVIPair', 'AVIPairLive',
                                           'ETag', 'ETagPair', 'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
                                           'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
                                           'News'])
-        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
-                                 choices=['NFB', 'THB', 'TNN'])
 
     def get(self):
         pass
 
-    def post(self, dataclass, authority):
+    def post(self, authority, dataclass):
         """
         [資料集批次寫入模式]
         處理速度快，但含重複資料則整批廢棄
-        命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}/standard/MOTC_traffic_v2/method/batch -X POST -d {data}
+        命令格式： /v1/traffic_data/authority/{authority}/class/{dataclass}/standard/MOTC_traffic_v2/method/batch -X POST -d {data}
         ---
         tags:
           - MOTC Traffic v2 Upload API (提供上傳交通部「即時路況資料標準(V2.0)」格式資料)
         parameters:
-          - in: path
-            name: dataclass
-            type: string
-            required: true
-            description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
-            enum: ['VD', 'VDLive', 'CCTV', 'CMS', 'CMSLive', 'AVI', 'AVIPair', 'AVIPairLive',
-                                          'ETag', 'ETagPair', 'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
-                                          'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
-                                          'News']
           - in: path
             name: authority
             type: string
             required: true
             description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
             enum: ['NFB', 'THB', 'TNN']
+          - in: path
+            name: dataclass
+            type: string
+            required: true
+            description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
+            enum: ['VD', 'VDLive', 'CCTV', 'CMS', 'CMSLive', 'AVI', 'AVIPair', 'AVIPairLive',
+                   'ETag', 'ETagPair', 'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
+                   'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
+                   'News']
           - in: body
             name: data
             required: true
@@ -128,41 +147,41 @@ class Upload_batch(Resource):
 class Upload_repeat_check(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
+        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
+                                 choices=['NFB', 'THB', 'TNN'])
         self.parser.add_argument('dataclass', type=str, required=False, help='Param error: dataclass',
                                  choices=['VD', 'VDLive', 'CCTV', 'CMS', 'CMSLive', 'AVI', 'AVIPair', 'AVIPairLive',
                                           'ETag', 'ETagPair', 'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
                                           'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
                                           'News'])
-        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
-                                 choices=['NFB', 'THB', 'TNN'])
 
     def get(self):
         pass
 
-    def post(self, dataclass, authority):
+    def post(self, authority, dataclass):
         """
         [資料集重複驗證模式]
         處理速度較慢，可逐筆寫入未重複資料
-        命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}/standard/MOTC_traffic_v2/method/repeat_check -X POST -d {data}
+        命令格式： /v1/traffic_data/authority/{authority}/class/{dataclass}/standard/MOTC_traffic_v2/method/repeat_check -X POST -d {data}
         ---
         tags:
           - MOTC Traffic v2 Upload API (提供上傳交通部「即時路況資料標準(V2.0)」格式資料)
         parameters:
-          - in: path
-            name: dataclass
-            type: string
-            required: true
-            description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
-            enum: ['VD', 'VDLive', 'CCTV', 'CMS', 'CMSLive', 'AVI', 'AVIPair', 'AVIPairLive',
-                                          'ETag', 'ETagPair', 'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
-                                          'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
-                                          'News']
           - in: path
             name: authority
             type: string
             required: true
             description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
             enum: ['NFB', 'THB', 'TNN']
+          - in: path
+            name: dataclass
+            type: string
+            required: true
+            description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
+            enum: ['VD', 'VDLive', 'CCTV', 'CMS', 'CMSLive', 'AVI', 'AVIPair', 'AVIPairLive',
+                   'ETag', 'ETagPair', 'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
+                   'Section', 'SectionLink', 'LiveTraffic', 'CongestionLevel', 'SectionShape',
+                   'News']
           - in: body
             name: data
             required: true
@@ -220,41 +239,41 @@ class Upload_repeat_check(Resource):
 class Upload_one_record_live(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
+        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
+                                 choices=['NFB', 'THB', 'TNN'])
         self.parser.add_argument('dataclass', type=str, required=False, help='Param error: dataclass',
                                  choices=['VDLive', 'CMSLive', 'AVIPairLive',
                                           'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
                                           'LiveTraffic',
                                           'News'])
-        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
-                                 choices=['NFB', 'THB', 'TNN'])
 
     def get(self):
         pass
 
-    def post(self, dataclass, authority):
+    def post(self, authority, dataclass):
         """
         [單筆動態資料模式]
         僅可寫入未重複資料
-        命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}/standard/MOTC_traffic_v2/method/one_record -X POST -d {data}
+        命令格式： /v1/traffic_data/authority/{authority}/class/{dataclass}/standard/MOTC_traffic_v2/method/one_record -X POST -d {data}
         ---
         tags:
           - MOTC Traffic v2 Upload API (提供上傳交通部「即時路況資料標準(V2.0)」格式資料)
         parameters:
-          - in: path
-            name: dataclass
-            type: string
-            required: true
-            description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
-            enum: ['VDLive', 'CMSLive', 'AVIPairLive',
-                                          'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
-                                          'LiveTraffic',
-                                          'News']
           - in: path
             name: authority
             type: string
             required: true
             description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
             enum: ['NFB', 'THB', 'TNN']
+          - in: path
+            name: dataclass
+            type: string
+            required: true
+            description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
+            enum: ['VDLive', 'CMSLive', 'AVIPairLive',
+                   'ETagPairLive', 'GVPLiveTraffic', 'CVPLiveTraffic',
+                   'LiveTraffic',
+                   'News']
           - in: body
             name: data
             required: true
@@ -316,29 +335,29 @@ class Upload_one_record_static(Resource):
     def get(self):
         pass
 
-    def post(self, dataclass, authority, date):
+    def post(self, authority, dataclass, date):
         """
         [單筆靜態資料模式]
         僅可寫入未重複資料
-        命令格式： /v1/traffic_data/class/{dataclass}/authority/{authority}/update/{date}/standard/MOTC_traffic_v2/method/one_record -X POST -d {data}
+        命令格式： /v1/traffic_data/authority/{authority}/class/{dataclass}/update/{date}/standard/MOTC_traffic_v2/method/one_record -X POST -d {data}
         ---
         tags:
           - MOTC Traffic v2 Upload API (提供上傳交通部「即時路況資料標準(V2.0)」格式資料)
         parameters:
-          - in: path
-            name: dataclass
-            type: string
-            required: true
-            description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
-            enum: ['VD', 'CCTV', 'CMS', 'AVI', 'AVIPair',
-                                          'ETag', 'ETagPair',
-                                          'Section', 'SectionLink', 'CongestionLevel', 'SectionShape']
           - in: path
             name: authority
             type: string
             required: true
             description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
             enum: ['NFB', 'THB', 'TNN']
+          - in: path
+            name: dataclass
+            type: string
+            required: true
+            description: 資料型態(依即時路況資料標準V2.0資料類型訂定，如VD、VDLive、LiveTraffic...)
+            enum: ['VD', 'CCTV', 'CMS', 'AVI', 'AVIPair',
+                   'ETag', 'ETagPair',
+                   'Section', 'SectionLink', 'CongestionLevel', 'SectionShape']
           - in: path
             name: date
             type: string

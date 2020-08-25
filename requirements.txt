@@ -5,3 +5,4 @@ Flask-RESTful==0.3.8
 flasgger==0.9.5
 Flask-PyMongo==2.3.0
 pyspark==3.0.0
+xmltodict==0.12.0
