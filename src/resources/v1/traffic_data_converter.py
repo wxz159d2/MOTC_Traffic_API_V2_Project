@@ -1,8 +1,5 @@
 # -*- coding: UTF-8 -*-
 
-import json
-import xml.etree.cElementTree as ET
-
 import xmltodict
 from flask import request
 from flask_restful import Resource, reqparse
@@ -83,14 +80,18 @@ class Converter_batch_xml_to_json(Resource):
 
         # 輸入XML文件
         data = request.data
-        tree = ET.ElementTree(data)
-        one_records = json.dumps(xmltodict.parse(data))
+        json_dict = xmltodict.parse(data)
+        json_dict = json_dict['VDLiveList']
+        del json_dict['@xsi:schemaLocation']
+        del json_dict['@xmlns:xsi']
+        del json_dict['@xmlns']
+        json_dict['VDLives'] = json_dict['VDLives']['VDLive']
+        del json_dict['Count']
 
+        output_json = {'data': json_dict}
         message = 'upload succeeded'
 
-        return {
-                   'message': message
-               }, 200
+        return output_json['data'], 200
 
     def put(self):
         pass

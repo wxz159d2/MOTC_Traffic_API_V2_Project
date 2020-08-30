@@ -138,9 +138,12 @@ class Get_t2_one_record(Resource):
             del json_dict['_id']  # 刪除momgo的資料編號
             json_data.append(json_dict)
 
-        return {
-                   'traffic_data': json_data
-               }, 200
+        output_json = {'data': json_data}
+        return output_json['data'], 200
+
+        # return {
+        #            'traffic_data': json_data
+        #        }, 200
 
     def post(self):
         pass
