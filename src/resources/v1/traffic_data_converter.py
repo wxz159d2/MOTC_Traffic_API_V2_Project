@@ -26,6 +26,28 @@ dataclass_record_name = {
     'News': 'Newses'
 }
 
+dataclass_list_name = {
+    'VD': 'VDList',
+    'VDLive': 'VDLiveList',
+    'CCTV': 'CCTVList',
+    'CMS': 'CMSList',
+    'CMSLive': 'CMSLiveList',
+    'AVI': 'AVIList',
+    'AVIPair': 'AVIPairList',
+    'AVIPairLive': 'AVIPairList',
+    'ETag': 'ETagList',
+    'ETagPair': 'ETagPairList',
+    'ETagPairLive': 'ETagPairLiveList',
+    'GVPLiveTraffic': 'GVPLiveTrafficList',
+    'CVPLiveTraffic': 'CVPLiveTrafficList',
+    'Section': 'SectionList',
+    'SectionLink': 'SectionLinkList',
+    'LiveTraffic': 'LiveTrafficList',
+    'CongestionLevel': 'CongestionLevelList',
+    'SectionShape': 'SectionShapeList',
+    'News': 'NewsList'
+}
+
 
 class Converter_batch_xml_to_json(Resource):
     def __init__(self):
@@ -81,17 +103,16 @@ class Converter_batch_xml_to_json(Resource):
         # 輸入XML文件
         data = request.data
         json_dict = xmltodict.parse(data)
-        json_dict = json_dict['VDLiveList']
+        json_dict = json_dict[dataclass_list_name[dataclass]]
         del json_dict['@xsi:schemaLocation']
         del json_dict['@xmlns:xsi']
         del json_dict['@xmlns']
-        json_dict['VDLives'] = json_dict['VDLives']['VDLive']
+        json_dict[dataclass_record_name[dataclass]] = json_dict[dataclass_record_name[dataclass]][dataclass]
         del json_dict['Count']
 
-        output_json = {'data': json_dict}
-        message = 'upload succeeded'
+        message = 'succeeded'
 
-        return output_json['data'], 200
+        return json_dict, 200
 
     def put(self):
         pass

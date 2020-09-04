@@ -139,11 +139,7 @@ class Get_t2_one_record(Resource):
             json_data.append(json_dict)
 
         output_json = {'data': json_data}
-        return output_json['data'], 200
-
-        # return {
-        #            'traffic_data': json_data
-        #        }, 200
+        return output_json, 200
 
     def post(self):
         pass
@@ -293,9 +289,8 @@ class Get_t2_time_range(Resource):
             del json_dict['_id']  # 刪除momgo的資料編號
             json_data.append(json_dict)
 
-        return {
-                   'traffic_data': json_data
-               }, 200
+        output_json = {'data': json_data}
+        return output_json, 200
 
     def post(self):
         pass
@@ -319,7 +314,7 @@ class Get_one_record_slsu(Resource):
         self.parser.add_argument('l_pce', type=float, default=1.0, required=False, help='Param error: l_pce')
         self.parser.add_argument('t_pce', type=float, default=1.0, required=False, help='Param error: t_pce')
 
-    def get(self, authority, dataclass, oid, date):
+    def get(self, authority, oid, date):
         """
         [單筆歷史車流資料查詢][合併車道][合併車種]
         提供查詢指定VD設備及資料時間之單筆合併車道及車種之車流資料，並具車當量(PCE)轉換功能
@@ -393,6 +388,8 @@ class Get_one_record_slsu(Resource):
         l_pce = args['l_pce']
         t_pce = args['t_pce']
 
+        dataclass = 'VDLive'
+
         # 參數轉小寫處裡
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
@@ -425,9 +422,407 @@ class Get_one_record_slsu(Resource):
             del json_dict['_id']  # 刪除momgo的資料編號
             json_data.append(json_dict)
 
-        return {
-                   'traffic_data': json_data
-               }, 200
+        output_json = {'data': json_data}
+        return output_json, 200
+
+    def post(self):
+        pass
+
+    def put(self):
+        pass
+
+    def delete(self):
+        pass
+
+
+class Get_one_record_slpu(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
+                                 choices=['NFB', 'THB', 'TNN'])
+        self.parser.add_argument('format', type=str, default='JSON', required=False, help='Param error: Format',
+                                 choices=['JSON', 'XML'])
+        self.parser.add_argument('m_pce', type=float, default=1.0, required=False, help='Param error: m_pce')
+        self.parser.add_argument('s_pce', type=float, default=1.0, required=False, help='Param error: s_pce')
+        self.parser.add_argument('l_pce', type=float, default=1.0, required=False, help='Param error: l_pce')
+        self.parser.add_argument('t_pce', type=float, default=1.0, required=False, help='Param error: t_pce')
+
+    def get(self, authority, oid, date):
+        """
+        [單筆歷史車流資料查詢][合併車道][各別車種]
+        提供查詢指定VD設備及資料時間之單筆合併車道及各別車種之車流資料，並具車當量(PCE)轉換功能
+        命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{date}/method/sum_lanes/per_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}
+        ---
+        tags:
+          - Traffic Data Query API (交通資料查詢API)
+        parameters:
+          - in: path
+            name: authority
+            type: string
+            required: true
+            description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
+            enum: ['NFB', 'THB', 'TNN']
+          - in: path
+            name: oid
+            type: string
+            required: true
+            description: VD設備之ID
+          - in: path
+            name: date
+            type: string
+            required: true
+            description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
+            default: '2020-08-13T10:49:00+08:00'
+          - in: query
+            name: format
+            type: string
+            required: false
+            description: 資料格式(支援JSON、XML)
+            enum: ['JSON', 'XML']
+            default: 'JSON'
+          - in: query
+            name: m_pce
+            type: float
+            required: false
+            description: 機車當量
+            default: 1.0
+          - in: query
+            name: s_pce
+            type: float
+            required: false
+            description: 小型車當量
+            default: 1.0
+          - in: query
+            name: l_pce
+            type: float
+            required: false
+            description: 大型車當量
+            default: 1.0
+          - in: query
+            name: t_pce
+            type: float
+            required: false
+            description: 連結車當量
+            default: 1.0
+        responses:
+          200:
+            description: OK
+         """
+
+        from api import mongo_url
+
+        message = ''
+
+        # 讀取API傳入參數
+        args = self.parser.parse_args()
+        format = args['format']
+        m_pce = args['m_pce']
+        s_pce = args['s_pce']
+        l_pce = args['l_pce']
+        t_pce = args['t_pce']
+
+        dataclass = 'VDLive'
+
+        # 參數轉小寫處裡
+        dataclass_lower = dataclass.lower()
+        authority_lower = authority.lower()
+
+        # MongoDB連結設定參數處裡
+        database = 'traffic_data_' + authority_lower
+        collection = dataclass_lower
+        mongo_url_db = mongo_url + database + '.' + collection
+
+        # pyspark讀取語法
+        from api import spark
+        id_name = dataclass_id_name[dataclass]
+        pipeline = ""
+        # 動態資料查詢管道指令
+        pipeline = pipeline + "{'$match':"
+        pipeline = pipeline + "    {'$and':["
+        pipeline = pipeline + "        {'" + id_name + "':'" + oid + "'"
+        pipeline = pipeline + "        },"
+        pipeline = pipeline + "        {'DataCollectTime':"
+        pipeline = pipeline + "            {'$date':'" + date + "'}"
+        pipeline = pipeline + "        }"
+        pipeline = pipeline + "    ]}"
+        pipeline = pipeline + "}"
+
+        df = spark.read.format('mongo').option('uri', mongo_url_db).option('pipeline', pipeline).load()
+        json_data_list = df.toJSON().collect()
+        json_data = []
+        for values in json_data_list:
+            json_dict = json.loads(values)
+            del json_dict['_id']  # 刪除momgo的資料編號
+            json_data.append(json_dict)
+
+        output_json = {'data': json_data}
+        return output_json, 200
+
+    def post(self):
+        pass
+
+    def put(self):
+        pass
+
+    def delete(self):
+        pass
+
+
+class Get_one_record_plsu(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
+                                 choices=['NFB', 'THB', 'TNN'])
+        self.parser.add_argument('format', type=str, default='JSON', required=False, help='Param error: Format',
+                                 choices=['JSON', 'XML'])
+        self.parser.add_argument('m_pce', type=float, default=1.0, required=False, help='Param error: m_pce')
+        self.parser.add_argument('s_pce', type=float, default=1.0, required=False, help='Param error: s_pce')
+        self.parser.add_argument('l_pce', type=float, default=1.0, required=False, help='Param error: l_pce')
+        self.parser.add_argument('t_pce', type=float, default=1.0, required=False, help='Param error: t_pce')
+
+    def get(self, authority, oid, date):
+        """
+        [單筆歷史車流資料查詢][各別車道][合併車種]
+        提供查詢指定VD設備及資料時間之單筆各別車道及合併車種之車流資料，並具車當量(PCE)轉換功能
+        命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{date}/method/per_lanes/sum_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}
+        ---
+        tags:
+          - Traffic Data Query API (交通資料查詢API)
+        parameters:
+          - in: path
+            name: authority
+            type: string
+            required: true
+            description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
+            enum: ['NFB', 'THB', 'TNN']
+          - in: path
+            name: oid
+            type: string
+            required: true
+            description: VD設備之ID
+          - in: path
+            name: date
+            type: string
+            required: true
+            description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
+            default: '2020-08-13T10:49:00+08:00'
+          - in: query
+            name: format
+            type: string
+            required: false
+            description: 資料格式(支援JSON、XML)
+            enum: ['JSON', 'XML']
+            default: 'JSON'
+          - in: query
+            name: m_pce
+            type: float
+            required: false
+            description: 機車當量
+            default: 1.0
+          - in: query
+            name: s_pce
+            type: float
+            required: false
+            description: 小型車當量
+            default: 1.0
+          - in: query
+            name: l_pce
+            type: float
+            required: false
+            description: 大型車當量
+            default: 1.0
+          - in: query
+            name: t_pce
+            type: float
+            required: false
+            description: 連結車當量
+            default: 1.0
+        responses:
+          200:
+            description: OK
+         """
+
+        from api import mongo_url
+
+        message = ''
+
+        # 讀取API傳入參數
+        args = self.parser.parse_args()
+        format = args['format']
+        m_pce = args['m_pce']
+        s_pce = args['s_pce']
+        l_pce = args['l_pce']
+        t_pce = args['t_pce']
+
+        dataclass = 'VDLive'
+
+        # 參數轉小寫處裡
+        dataclass_lower = dataclass.lower()
+        authority_lower = authority.lower()
+
+        # MongoDB連結設定參數處裡
+        database = 'traffic_data_' + authority_lower
+        collection = dataclass_lower
+        mongo_url_db = mongo_url + database + '.' + collection
+
+        # pyspark讀取語法
+        from api import spark
+        id_name = dataclass_id_name[dataclass]
+        pipeline = ""
+        # 動態資料查詢管道指令
+        pipeline = pipeline + "{'$match':"
+        pipeline = pipeline + "    {'$and':["
+        pipeline = pipeline + "        {'" + id_name + "':'" + oid + "'"
+        pipeline = pipeline + "        },"
+        pipeline = pipeline + "        {'DataCollectTime':"
+        pipeline = pipeline + "            {'$date':'" + date + "'}"
+        pipeline = pipeline + "        }"
+        pipeline = pipeline + "    ]}"
+        pipeline = pipeline + "}"
+
+        df = spark.read.format('mongo').option('uri', mongo_url_db).option('pipeline', pipeline).load()
+        json_data_list = df.toJSON().collect()
+        json_data = []
+        for values in json_data_list:
+            json_dict = json.loads(values)
+            del json_dict['_id']  # 刪除momgo的資料編號
+            json_data.append(json_dict)
+
+        output_json = {'data': json_data}
+        return output_json, 200
+
+    def post(self):
+        pass
+
+    def put(self):
+        pass
+
+    def delete(self):
+        pass
+
+
+class Get_one_record_plpu(Resource):
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
+                                 choices=['NFB', 'THB', 'TNN'])
+        self.parser.add_argument('format', type=str, default='JSON', required=False, help='Param error: Format',
+                                 choices=['JSON', 'XML'])
+        self.parser.add_argument('m_pce', type=float, default=1.0, required=False, help='Param error: m_pce')
+        self.parser.add_argument('s_pce', type=float, default=1.0, required=False, help='Param error: s_pce')
+        self.parser.add_argument('l_pce', type=float, default=1.0, required=False, help='Param error: l_pce')
+        self.parser.add_argument('t_pce', type=float, default=1.0, required=False, help='Param error: t_pce')
+
+    def get(self, authority, oid, date):
+        """
+        [單筆歷史車流資料查詢][各別車道][各別車種]
+        提供查詢指定VD設備及資料時間之單筆各別車道及車種之車流資料，並具車當量(PCE)轉換功能
+        命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{date}/method/per_lanes/per_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}
+        ---
+        tags:
+          - Traffic Data Query API (交通資料查詢API)
+        parameters:
+          - in: path
+            name: authority
+            type: string
+            required: true
+            description: 業管機關簡碼(https://traffic-api-documentation.gitbook.io/traffic/xiang-dai-zhao-biao)
+            enum: ['NFB', 'THB', 'TNN']
+          - in: path
+            name: oid
+            type: string
+            required: true
+            description: VD設備之ID
+          - in: path
+            name: date
+            type: string
+            required: true
+            description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
+            default: '2020-08-13T10:49:00+08:00'
+          - in: query
+            name: format
+            type: string
+            required: false
+            description: 資料格式(支援JSON、XML)
+            enum: ['JSON', 'XML']
+            default: 'JSON'
+          - in: query
+            name: m_pce
+            type: float
+            required: false
+            description: 機車當量
+            default: 1.0
+          - in: query
+            name: s_pce
+            type: float
+            required: false
+            description: 小型車當量
+            default: 1.0
+          - in: query
+            name: l_pce
+            type: float
+            required: false
+            description: 大型車當量
+            default: 1.0
+          - in: query
+            name: t_pce
+            type: float
+            required: false
+            description: 連結車當量
+            default: 1.0
+        responses:
+          200:
+            description: OK
+         """
+
+        from api import mongo_url
+
+        message = ''
+
+        # 讀取API傳入參數
+        args = self.parser.parse_args()
+        format = args['format']
+        m_pce = args['m_pce']
+        s_pce = args['s_pce']
+        l_pce = args['l_pce']
+        t_pce = args['t_pce']
+
+        dataclass = 'VDLive'
+
+        # 參數轉小寫處裡
+        dataclass_lower = dataclass.lower()
+        authority_lower = authority.lower()
+
+        # MongoDB連結設定參數處裡
+        database = 'traffic_data_' + authority_lower
+        collection = dataclass_lower
+        mongo_url_db = mongo_url + database + '.' + collection
+
+        # pyspark讀取語法
+        from api import spark
+        id_name = dataclass_id_name[dataclass]
+        pipeline = ""
+        # 動態資料查詢管道指令
+        pipeline = pipeline + "{'$match':"
+        pipeline = pipeline + "    {'$and':["
+        pipeline = pipeline + "        {'" + id_name + "':'" + oid + "'"
+        pipeline = pipeline + "        },"
+        pipeline = pipeline + "        {'DataCollectTime':"
+        pipeline = pipeline + "            {'$date':'" + date + "'}"
+        pipeline = pipeline + "        }"
+        pipeline = pipeline + "    ]}"
+        pipeline = pipeline + "}"
+
+        df = spark.read.format('mongo').option('uri', mongo_url_db).option('pipeline', pipeline).load()
+        json_data_list = df.toJSON().collect()
+        json_data = []
+        for values in json_data_list:
+            json_dict = json.loads(values)
+            del json_dict['_id']  # 刪除momgo的資料編號
+            json_data.append(json_dict)
+
+        output_json = {'data': json_data}
+        return output_json, 200
 
     def post(self):
         pass
