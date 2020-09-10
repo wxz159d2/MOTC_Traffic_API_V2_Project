@@ -108,11 +108,11 @@ class Upload_batch(Resource):
         # 讀取API傳入參數
         args = self.parser.parse_args()
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
@@ -200,11 +200,11 @@ class Upload_repeat_check(Resource):
         # 讀取API傳入參數
         args = self.parser.parse_args()
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
@@ -292,11 +292,11 @@ class Upload_one_record_live(Resource):
         # 讀取API傳入參數
         args = self.parser.parse_args()
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
@@ -382,11 +382,11 @@ class Upload_one_record_static(Resource):
         # 讀取API傳入參數
         args = self.parser.parse_args()
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection

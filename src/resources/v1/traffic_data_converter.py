@@ -1,5 +1,7 @@
 # -*- coding: UTF-8 -*-
 
+# 僅提供交通2.0標準 XML格式轉JSON使用
+
 import xmltodict
 from flask import request
 from flask_restful import Resource, reqparse
@@ -103,7 +105,7 @@ class Converter_batch_xml_to_json(Resource):
         # 讀取API傳入參數
         args = self.parser.parse_args()
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
 
         # 輸入XML文件
@@ -119,8 +121,18 @@ class Converter_batch_xml_to_json(Resource):
         # 轉換類型：VD
         if dataclass == 'VD':
             for i in range(len(json_dict[dataclass_record[dataclass]])):
-                json_dict[dataclass_record[dataclass]][i]['DetectionLinks'] = [
-                    json_dict[dataclass_record[dataclass]][i]['DetectionLinks']['DetectionLink']]
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if isinstance(json_dict[dataclass_record[dataclass]][i]['DetectionLinks'], dict):  # 無資料特例處理
+                    json_dict[dataclass_record[dataclass]][i]['DetectionLinks'] = [
+                        json_dict[dataclass_record[dataclass]][i]['DetectionLinks']['DetectionLink']]
         # 轉換類型：VDLive
         elif dataclass == 'VDLive':
             # 第一層轉換
@@ -149,39 +161,213 @@ class Converter_batch_xml_to_json(Resource):
             for i in range(len(json_dict[dataclass_record[dataclass]])):
                 for j in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'])):
                     for k in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'])):
-                        if isinstance(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k], dict):
-                            json_data = []
-                            for listdata in \
-                                    json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'][
-                                        'Vehicle']:
-                                json_data.append(listdata)
-                            json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k][
-                                'Vehicles'] = json_data
-                        else:
+                        if not isinstance(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k], dict):
                             json_data = []
                             for listdata in json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]:
                                 json_data.append(listdata)
                             json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'] = json_data
-            # 第四層轉換
             for i in range(len(json_dict[dataclass_record[dataclass]])):
                 for j in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'])):
                     for k in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'])):
-                        if isinstance(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'],
-                                      dict):
-                            json_data = []
-                            for listdata in \
-                                    json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'][
-                                        'Vehicle']:
-                                json_data.append(listdata)
-                            json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k][
-                                'Vehicles'] = json_data
-            # 第五層轉換(資料清除)
+                        json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'] = (
+                            json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'][
+                                'Vehicle'])
+            # 第四層轉換(選填資料清除)
             for i in range(len(json_dict[dataclass_record[dataclass]])):
                 for j in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'])):
                     for k in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'])):
-                        for l in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'])):
-                            if isinstance(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'][l]['Speed'], dict):
-                                del json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'][l]['Speed']
+                        vehicles_list = json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k][
+                            'Vehicles']  # 變數太長，轉換縮減用
+                        for l in range(len(vehicles_list)):
+                            if 'Speed' in vehicles_list[l]:
+                                if isinstance(vehicles_list[l]['Speed'], dict):
+                                    del json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k][
+                                        'Vehicles'][l]['Speed']
+        # 轉換類型：CCTV
+        elif dataclass == 'CCTV':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：CMS
+        elif dataclass == 'CMS':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：CMSLive
+        elif dataclass == 'CMSLive':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：AVI or ETag
+        elif dataclass == 'AVI' or dataclass == 'ETag':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：AVIPair or ETagPair
+        elif dataclass == 'AVIPair' or dataclass == 'ETagPair':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：AVIPairLive
+        elif dataclass == 'AVIPairLive':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：ETagPairLive
+        elif dataclass == 'AVIPairLive':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                json_dict[dataclass_record[dataclass]][i]['Flows'] = [
+                    json_dict[dataclass_record[dataclass]][i]['Flows']['Flow']]
+        # 轉換類型：GVPLiveTraffic or CVPLiveTraffic
+        elif dataclass == 'GVPLiveTraffic' or dataclass == 'CVPLiveTraffic':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：Section
+        elif dataclass == 'Section':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：SectionLink
+        elif dataclass == 'SectionLink':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：LiveTraffic
+        elif dataclass == 'LiveTraffic':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：CongestionLevel
+        elif dataclass == 'CongestionLevel':
+            if not isinstance(json_dict[dataclass_record[dataclass]], dict):
+                for i in range(len(json_dict[dataclass_record[dataclass]])):
+                    if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                        if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                            del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                    if 'Description' in json_dict[dataclass_record[dataclass]]:
+                        if isinstance(json_dict[dataclass_record[dataclass]]['Description'], dict):
+                            del json_dict[dataclass_record[dataclass]]['Description']
+                # 第二層轉換
+                for i in range(len(json_dict[dataclass_record[dataclass]])):
+                    json_dict[dataclass_record[dataclass]][i]['Levels'] = (
+                        json_dict[dataclass_record[dataclass]][i]['Levels']['LevelItem'])
+            else:
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]]:
+                    if isinstance(json_dict[dataclass_record[dataclass]]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]]['SubAuthorityCode']
+                if 'Description' in json_dict[dataclass_record[dataclass]]:
+                    if isinstance(json_dict[dataclass_record[dataclass]]['Description'], dict):
+                        del json_dict[dataclass_record[dataclass]]['Description']
+                json_dict[dataclass_record[dataclass]] = [json_dict[dataclass_record[dataclass]]]
+                for i in range(len(json_dict[dataclass_record[dataclass]])):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]['Levels']['LevelItem']:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]][i]['Levels'] = json_data
+            # (選填資料清除)
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                for j in range(len(json_dict[dataclass_record[dataclass]][i]['Levels'])):
+                    if 'TopValue' in json_dict[dataclass_record[dataclass]][i]['Levels'][j]:
+                        if isinstance(json_dict[dataclass_record[dataclass]][i]['Levels'][j]['TopValue'], dict):
+                            del json_dict[dataclass_record[dataclass]][i]['Levels'][j]['TopValue']
+                    if 'LowValue' in json_dict[dataclass_record[dataclass]][i]['Levels'][j]:
+                        if isinstance(json_dict[dataclass_record[dataclass]][i]['Levels'][j]['LowValue'], dict):
+                            del json_dict[dataclass_record[dataclass]][i]['Levels'][j]['LowValue']
+        # 轉換類型：SectionShape
+        elif dataclass == 'SectionShape':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
+        # 轉換類型：News
+        elif dataclass == 'News':
+            for i in range(len(json_dict[dataclass_record[dataclass]])):
+                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                if 'Department' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['Department'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['Department']
+                if 'NewsURL' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['NewsURL'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['NewsURL']
+                if 'AttachmentURL' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['AttachmentURL'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['AttachmentURL']
+                if 'StartTime' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['StartTime'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['StartTime']
+                if 'EndTime' in json_dict[dataclass_record[dataclass]][i]:
+                    if isinstance(json_dict[dataclass_record[dataclass]][i]['EndTime'], dict):
+                        del json_dict[dataclass_record[dataclass]][i]['EndTime']
+                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+                    json_data = []
+                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                        json_data.append(listdata)
+                    json_dict[dataclass_record[dataclass]] = json_data
         else:
             message = 'The class type is no function.'
         message = 'succeeded'

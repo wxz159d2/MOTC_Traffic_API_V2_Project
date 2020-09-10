@@ -94,11 +94,11 @@ class Get_t2_one_record(Resource):
         args = self.parser.parse_args()
         format = args['format']
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
@@ -234,11 +234,11 @@ class Get_t2_time_range(Resource):
         format = args['format']
         sort = args['sort']
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
@@ -390,11 +390,11 @@ class Get_one_record_slsu(Resource):
 
         dataclass = 'VDLive'
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
@@ -523,11 +523,11 @@ class Get_one_record_slpu(Resource):
 
         dataclass = 'VDLive'
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
@@ -656,11 +656,11 @@ class Get_one_record_plsu(Resource):
 
         dataclass = 'VDLive'
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
@@ -789,11 +789,11 @@ class Get_one_record_plpu(Resource):
 
         dataclass = 'VDLive'
 
-        # 參數轉小寫處裡
+        # 參數轉小寫處理
         dataclass_lower = dataclass.lower()
         authority_lower = authority.lower()
 
-        # MongoDB連結設定參數處裡
+        # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
         mongo_url_db = mongo_url + database + '.' + collection
