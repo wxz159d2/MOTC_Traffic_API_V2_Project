@@ -3,7 +3,7 @@ import json
 
 from flask_restful import Resource, reqparse
 
-dataclass_id_name = {
+dataclass_id = {
     'VD': 'VDID',
     'VDLive': 'VDID',
     'CCTV': 'CCTVID',
@@ -105,7 +105,7 @@ class Get_t2_one_record(Resource):
 
         # pyspark讀取語法
         from api import spark
-        id_name = dataclass_id_name[dataclass]
+        id_name = dataclass_id[dataclass]
         pipeline = ""
         if 'Live' in dataclass:
             # 動態資料查詢管道指令
@@ -245,7 +245,7 @@ class Get_t2_time_range(Resource):
 
         # pyspark讀取語法
         from api import spark
-        id_name = dataclass_id_name[dataclass]
+        id_name = dataclass_id[dataclass]
         pipeline = ""
         if 'Live' in dataclass:
             # 動態資料查詢管道指令
@@ -401,7 +401,7 @@ class Get_one_record_slsu(Resource):
 
         # pyspark讀取語法
         from api import spark
-        id_name = dataclass_id_name[dataclass]
+        id_name = dataclass_id[dataclass]
         pipeline = ""
         # 動態資料查詢管道指令
         pipeline = pipeline + "{'$match':"
@@ -534,7 +534,7 @@ class Get_one_record_slpu(Resource):
 
         # pyspark讀取語法
         from api import spark
-        id_name = dataclass_id_name[dataclass]
+        id_name = dataclass_id[dataclass]
         pipeline = ""
         # 動態資料查詢管道指令
         pipeline = pipeline + "{'$match':"
@@ -667,7 +667,7 @@ class Get_one_record_plsu(Resource):
 
         # pyspark讀取語法
         from api import spark
-        id_name = dataclass_id_name[dataclass]
+        id_name = dataclass_id[dataclass]
         pipeline = ""
         # 動態資料查詢管道指令
         pipeline = pipeline + "{'$match':"
@@ -800,7 +800,7 @@ class Get_one_record_plpu(Resource):
 
         # pyspark讀取語法
         from api import spark
-        id_name = dataclass_id_name[dataclass]
+        id_name = dataclass_id[dataclass]
         pipeline = ""
         # 動態資料查詢管道指令
         pipeline = pipeline + "{'$match':"

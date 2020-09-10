@@ -29,7 +29,7 @@ from flask_restful import Resource, reqparse
 from py4j.protocol import Py4JJavaError
 from pyspark.sql.utils import convert_exception
 
-dataclass_record_name = {
+dataclass_record = {
     'VD': 'VDs',
     'VDLive': 'VDLives',
     'CCTV': 'CCTVs',
@@ -121,7 +121,7 @@ class Upload_batch(Resource):
         # 輸入JSON文件
         data = request.get_json()
         update_time = data['UpdateTime']
-        one_records = data[dataclass_record_name[dataclass]]
+        one_records = data[dataclass_record[dataclass]]
         # 靜態資料附加UpdateTime資訊
         for one_record in one_records:
             if not ('DataCollectTime' in one_record) and not ('UpdateTime' in one_record):
@@ -213,7 +213,7 @@ class Upload_repeat_check(Resource):
         # 輸入JSON文件
         data = request.get_json()
         update_time = data['UpdateTime']
-        one_records = data[dataclass_record_name[dataclass]]
+        one_records = data[dataclass_record[dataclass]]
         for one_record in one_records:
             # 靜態資料附加UpdateTime資訊
             if not ('DataCollectTime' in one_record) and not ('UpdateTime' in one_record):
