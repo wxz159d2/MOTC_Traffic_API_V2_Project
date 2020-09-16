@@ -68,12 +68,13 @@ class Get_t2_one_record(Resource):
             type: string
             required: true
             description: 設備、資料之ID
+            default: 'VD-N3-S-300.000-N-Loop'
           - in: path
             name: date
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-13T10:49:00+08:00'
+            default: '2020-08-18T17:50:00+08:00'
           - in: query
             name: format
             type: string
@@ -195,18 +196,19 @@ class Get_t2_time_range(Resource):
             type: string
             required: true
             description: 設備、資料之ID
+            default: 'VD-N3-S-300.000-N-Loop'
           - in: path
             name: sdate
             type: string
             required: true
             description: 資料代表之開始時間(含)(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-13T10:49:00+08:00'
+            default: '2020-08-18T17:00:00+08:00'
           - in: path
             name: edate
             type: string
             required: true
             description: 資料代表之結束時間(含)(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-13T13:21:00+08:00'
+            default: '2020-08-18T18:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -333,13 +335,14 @@ class Get_one_record_slsu(Resource):
             name: oid
             type: string
             required: true
-            description: VD設備之ID
+            description: 設備、資料之ID
+            default: 'VD-N3-S-300.000-N-Loop'
           - in: path
             name: date
             type: string
             required: true
-            description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-08-13T10:49:00+08:00'
+            description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
+            default: '2020-08-18T17:50:00+08:00'
           - in: query
             name: format
             type: string
@@ -422,6 +425,44 @@ class Get_one_record_slsu(Resource):
             del json_dict['_id']  # 刪除momgo的資料編號
             json_data.append(json_dict)
 
+        for data_list in json_data:
+            for link_list in data_list['LinkFlows']:
+                l_occupancy = 0
+                l_speed = 0
+                l_volume = 0
+                for lane_list in link_list['Lanes']:
+                    v_volume = 0
+                    for vehicle_list in lane_list['Vehicles']:
+                        # 合併各車種流量
+                        if vehicle_list['VehicleType'] == 'M':
+                            if int(vehicle_list['Volume']) >= 0:
+                                v_volume = v_volume + int(vehicle_list['Volume']) * m_pce
+                        elif vehicle_list['VehicleType'] == 'S':
+                            if int(vehicle_list['Volume']) >= 0:
+                                v_volume = v_volume + int(vehicle_list['Volume']) * s_pce
+                        elif vehicle_list['VehicleType'] == 'L':
+                            if int(vehicle_list['Volume']) >= 0:
+                                v_volume = v_volume + int(vehicle_list['Volume']) * l_pce
+                        elif vehicle_list['VehicleType'] == 'T':
+                            if int(vehicle_list['Volume']) >= 0:
+                                v_volume = v_volume + int(vehicle_list['Volume']) * t_pce
+                        else:
+                            if int(vehicle_list['Volume']) >= 0:
+                                v_volume = v_volume + int(vehicle_list['Volume']) * 1
+                    lane_list['Volume'] = v_volume
+                    del lane_list['Vehicles']
+                    # 合併各車道
+                    if float(lane_list['Volume']) >= 0:
+                        l_volume = l_volume + float(lane_list['Volume'])
+                        l_speed = l_speed + float(lane_list['Speed']) * float(lane_list['Volume'])
+                        l_occupancy = l_occupancy + float(lane_list['Occupancy'])
+                l_speed = l_speed / l_volume
+                l_occupancy = l_occupancy / len(link_list['Lanes'])
+                link_list['Volume'] = l_volume
+                link_list['Speed'] = l_speed
+                link_list['Occupancy'] = l_occupancy
+                del link_list['Lanes']
+
         output_json = {'data': json_data}
         return output_json, 200
 
@@ -466,13 +507,14 @@ class Get_one_record_slpu(Resource):
             name: oid
             type: string
             required: true
-            description: VD設備之ID
+            description: 設備、資料之ID
+            default: 'VD-N3-S-300.000-N-Loop'
           - in: path
             name: date
             type: string
             required: true
-            description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-08-13T10:49:00+08:00'
+            description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
+            default: '2020-08-18T17:50:00+08:00'
           - in: query
             name: format
             type: string
@@ -599,13 +641,14 @@ class Get_one_record_plsu(Resource):
             name: oid
             type: string
             required: true
-            description: VD設備之ID
+            description: 設備、資料之ID
+            default: 'VD-N3-S-300.000-N-Loop'
           - in: path
             name: date
             type: string
             required: true
-            description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-08-13T10:49:00+08:00'
+            description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
+            default: '2020-08-18T17:50:00+08:00'
           - in: query
             name: format
             type: string
@@ -732,13 +775,14 @@ class Get_one_record_plpu(Resource):
             name: oid
             type: string
             required: true
-            description: VD設備之ID
+            description: 設備、資料之ID
+            default: 'VD-N3-S-300.000-N-Loop'
           - in: path
             name: date
             type: string
             required: true
-            description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-08-13T10:49:00+08:00'
+            description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
+            default: '2020-08-18T17:50:00+08:00'
           - in: query
             name: format
             type: string

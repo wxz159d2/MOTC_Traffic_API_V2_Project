@@ -120,195 +120,210 @@ class Converter_batch_xml_to_json(Resource):
 
         # 轉換類型：VD
         if dataclass == 'VD':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if isinstance(json_dict[dataclass_record[dataclass]][i]['DetectionLinks'], dict):  # 無資料特例處理
-                    json_dict[dataclass_record[dataclass]][i]['DetectionLinks'] = [
-                        json_dict[dataclass_record[dataclass]][i]['DetectionLinks']['DetectionLink']]
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if isinstance(layer_1['DetectionLinks'], dict):
+                    layer_1['DetectionLinks'] = layer_1['DetectionLinks']['DetectionLink']
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if isinstance(layer_1['DetectionLinks'], dict):
+                    layer_1['DetectionLinks'] = [layer_1['DetectionLinks']]
         # 轉換類型：VDLive
         elif dataclass == 'VDLive':
             # 第一層轉換
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                json_dict[dataclass_record[dataclass]][i]['LinkFlows'] = [
-                    json_dict[dataclass_record[dataclass]][i]['LinkFlows']['LinkFlow']]
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                layer_1['LinkFlows'] = [layer_1['LinkFlows']['LinkFlow']]
             # 第二層轉換
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                for j in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'])):
-                    if not isinstance(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                for layer_2 in layer_1['LinkFlows']:
+                    if not isinstance(layer_2, dict):
                         json_data = []
-                        for listdata in json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]:
+                        for listdata in layer_2:
                             json_data.append(listdata)
-                        json_dict[dataclass_record[dataclass]][i]['LinkFlows'] = json_data
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                for j in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'])):
-                    json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'] = [
-                        json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes']['Lane']]
+                        layer_1['LinkFlows'] = json_data
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                for layer_2 in layer_1['LinkFlows']:
+                    layer_2['Lanes'] = [layer_2['Lanes']['Lane']]
             # 第三層轉換
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                for j in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'])):
-                    for k in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'])):
-                        if not isinstance(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                for layer_2 in layer_1['LinkFlows']:
+                    for layer_3 in layer_2['Lanes']:
+                        if not isinstance(layer_3, dict):
                             json_data = []
-                            for listdata in json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]:
+                            for listdata in layer_3:
                                 json_data.append(listdata)
-                            json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'] = json_data
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                for j in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'])):
-                    for k in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'])):
-                        json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'] = (
-                            json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k]['Vehicles'][
-                                'Vehicle'])
-            # 第四層轉換(選填資料清除)
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                for j in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'])):
-                    for k in range(len(json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'])):
-                        vehicles_list = json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k][
-                            'Vehicles']  # 變數太長，轉換縮減用
-                        for l in range(len(vehicles_list)):
-                            if 'Speed' in vehicles_list[l]:
-                                if isinstance(vehicles_list[l]['Speed'], dict):
-                                    del json_dict[dataclass_record[dataclass]][i]['LinkFlows'][j]['Lanes'][k][
-                                        'Vehicles'][l]['Speed']
+                            layer_2['Lanes'] = json_data
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                for layer_2 in layer_1['LinkFlows']:
+                    for layer_3 in layer_2['Lanes']:
+                        layer_3['Vehicles'] = (layer_3['Vehicles']['Vehicle'])
+            # 第四層轉換(選填資料無值清除)
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                for layer_2 in layer_1['LinkFlows']:
+                    for layer_3 in layer_2['Lanes']:
+                        for layer_4 in layer_3['Vehicles']:
+                            if 'Speed' in layer_4:
+                                if isinstance(layer_4['Speed'], dict):
+                                    del layer_4['Speed']
         # 轉換類型：CCTV
         elif dataclass == 'CCTV':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：CMS
         elif dataclass == 'CMS':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：CMSLive
         elif dataclass == 'CMSLive':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：AVI or ETag
         elif dataclass == 'AVI' or dataclass == 'ETag':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：AVIPair or ETagPair
         elif dataclass == 'AVIPair' or dataclass == 'ETagPair':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'LinkIDs' in layer_1:
+                    if isinstance(layer_1['LinkIDs'], dict):
+                        if 'LinkIDItem' in layer_1['LinkIDs']:
+                            json_data = []
+                            for layer_2 in layer_1['LinkIDs']['LinkIDItem']:
+                                json_data.append(layer_2)
+                            layer_1['LinkIDs'] = json_data
+                        else:
+                            json_data = []
+                            for layer_2 in layer_1['LinkIDs']['LinkID']:
+                                json_data.append({'LinkID': layer_2})
+                            layer_1['LinkIDs'] = json_data
         # 轉換類型：AVIPairLive
         elif dataclass == 'AVIPairLive':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：ETagPairLive
-        elif dataclass == 'AVIPairLive':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+        elif dataclass == 'ETagPairLive':
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                json_dict[dataclass_record[dataclass]][i]['Flows'] = [
-                    json_dict[dataclass_record[dataclass]][i]['Flows']['Flow']]
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                layer_1['Flows'] = [layer_1['Flows']['Flow']]
         # 轉換類型：GVPLiveTraffic or CVPLiveTraffic
         elif dataclass == 'GVPLiveTraffic' or dataclass == 'CVPLiveTraffic':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：Section
         elif dataclass == 'Section':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：SectionLink
         elif dataclass == 'SectionLink':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：LiveTraffic
         elif dataclass == 'LiveTraffic':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：CongestionLevel
         elif dataclass == 'CongestionLevel':
             if not isinstance(json_dict[dataclass_record[dataclass]], dict):
-                for i in range(len(json_dict[dataclass_record[dataclass]])):
-                    if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                        if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                            del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
+                for layer_1 in json_dict[dataclass_record[dataclass]]:
+                    if 'SubAuthorityCode' in layer_1:
+                        if isinstance(layer_1['SubAuthorityCode'], dict):
+                            del layer_1['SubAuthorityCode']
                     if 'Description' in json_dict[dataclass_record[dataclass]]:
                         if isinstance(json_dict[dataclass_record[dataclass]]['Description'], dict):
                             del json_dict[dataclass_record[dataclass]]['Description']
                 # 第二層轉換
-                for i in range(len(json_dict[dataclass_record[dataclass]])):
-                    json_dict[dataclass_record[dataclass]][i]['Levels'] = (
-                        json_dict[dataclass_record[dataclass]][i]['Levels']['LevelItem'])
+                for layer_1 in json_dict[dataclass_record[dataclass]]:
+                    if 'LevelItem' in layer_1['Levels']:
+                        json_data = []
+                        for layer_2 in layer_1['Levels']['LevelItem']:
+                            json_data.append(layer_2)
+                        layer_1['Levels'] = json_data
+                    else:
+                        json_data = []
+                        for layer_2 in layer_1['Levels']['Level']:
+                            json_data.append(layer_2)
+                        layer_1['Levels'] = json_data
             else:
                 if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]]:
                     if isinstance(json_dict[dataclass_record[dataclass]]['SubAuthorityCode'], dict):
@@ -317,55 +332,61 @@ class Converter_batch_xml_to_json(Resource):
                     if isinstance(json_dict[dataclass_record[dataclass]]['Description'], dict):
                         del json_dict[dataclass_record[dataclass]]['Description']
                 json_dict[dataclass_record[dataclass]] = [json_dict[dataclass_record[dataclass]]]
-                for i in range(len(json_dict[dataclass_record[dataclass]])):
-                    json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]['Levels']['LevelItem']:
-                        json_data.append(listdata)
-                    json_dict[dataclass_record[dataclass]][i]['Levels'] = json_data
-            # (選填資料清除)
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                for j in range(len(json_dict[dataclass_record[dataclass]][i]['Levels'])):
-                    if 'TopValue' in json_dict[dataclass_record[dataclass]][i]['Levels'][j]:
-                        if isinstance(json_dict[dataclass_record[dataclass]][i]['Levels'][j]['TopValue'], dict):
-                            del json_dict[dataclass_record[dataclass]][i]['Levels'][j]['TopValue']
-                    if 'LowValue' in json_dict[dataclass_record[dataclass]][i]['Levels'][j]:
-                        if isinstance(json_dict[dataclass_record[dataclass]][i]['Levels'][j]['LowValue'], dict):
-                            del json_dict[dataclass_record[dataclass]][i]['Levels'][j]['LowValue']
+                for layer_1 in json_dict[dataclass_record[dataclass]]:
+                    if 'LevelItem' in layer_1['Levels']:
+                        json_data = []
+                        for layer_2 in layer_1['Levels']['LevelItem']:
+                            json_data.append(layer_2)
+                        layer_1['Levels'] = json_data
+                    else:
+                        json_data = []
+                        for layer_2 in layer_1['Levels']['Level']:
+                            json_data.append(layer_2)
+                        layer_1['Levels'] = json_data
+            # (選填資料無值清除)
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                for layer_2 in layer_1['Levels']:
+                    if 'TopValue' in layer_2:
+                        if isinstance(layer_2['TopValue'], dict):
+                            del layer_2['TopValue']
+                    if 'LowValue' in layer_2:
+                        if isinstance(layer_2['LowValue'], dict):
+                            del layer_2['LowValue']
         # 轉換類型：SectionShape
         elif dataclass == 'SectionShape':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         # 轉換類型：News
         elif dataclass == 'News':
-            for i in range(len(json_dict[dataclass_record[dataclass]])):
-                if 'SubAuthorityCode' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['SubAuthorityCode']
-                if 'Department' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['Department'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['Department']
-                if 'NewsURL' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['NewsURL'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['NewsURL']
-                if 'AttachmentURL' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['AttachmentURL'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['AttachmentURL']
-                if 'StartTime' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['StartTime'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['StartTime']
-                if 'EndTime' in json_dict[dataclass_record[dataclass]][i]:
-                    if isinstance(json_dict[dataclass_record[dataclass]][i]['EndTime'], dict):
-                        del json_dict[dataclass_record[dataclass]][i]['EndTime']
-                if not isinstance(json_dict[dataclass_record[dataclass]][i], dict):
+            for layer_1 in json_dict[dataclass_record[dataclass]]:
+                if 'SubAuthorityCode' in layer_1:
+                    if isinstance(layer_1['SubAuthorityCode'], dict):
+                        del layer_1['SubAuthorityCode']
+                if 'Department' in layer_1:
+                    if isinstance(layer_1['Department'], dict):
+                        del layer_1['Department']
+                if 'NewsURL' in layer_1:
+                    if isinstance(layer_1['NewsURL'], dict):
+                        del layer_1['NewsURL']
+                if 'AttachmentURL' in layer_1:
+                    if isinstance(layer_1['AttachmentURL'], dict):
+                        del layer_1['AttachmentURL']
+                if 'StartTime' in layer_1:
+                    if isinstance(layer_1['StartTime'], dict):
+                        del layer_1['StartTime']
+                if 'EndTime' in layer_1:
+                    if isinstance(layer_1['EndTime'], dict):
+                        del layer_1['EndTime']
+                if not isinstance(layer_1, dict):
                     json_data = []
-                    for listdata in json_dict[dataclass_record[dataclass]][i]:
+                    for listdata in layer_1:
                         json_data.append(listdata)
                     json_dict[dataclass_record[dataclass]] = json_data
         else:
