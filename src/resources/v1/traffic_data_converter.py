@@ -51,6 +51,7 @@ dataclass_list = {
 }
 
 
+# 鍵值刪除程序
 def del_json_dict(json_dict, del_key):
     if del_key in json_dict:
         del json_dict[del_key]
