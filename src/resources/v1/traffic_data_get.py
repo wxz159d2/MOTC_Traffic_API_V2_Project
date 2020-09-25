@@ -1,7 +1,13 @@
 # -*- coding: UTF-8 -*-
+import copy
+import datetime
 import json
 
+import aniso8601
 from flask_restful import Resource, reqparse
+
+# 取代值
+REPLACE_VALUE = -1
 
 dataclass_id = {
     'VD': 'VDID',
@@ -53,13 +59,13 @@ def del_json_dict(json_dict, del_key):
 
 # 正常VDLive合併車道車種資料處理
 def vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
-    for data_list in json_data:
+    for json_dict in json_data:
         # 標註資料狀態(先假設正常)
-        data_list['DataStatus'] = data_status['normal']
+        json_dict['DataStatus'] = data_status['normal']
         # 檢查設備狀態，如異常則標註資料異常
-        if not data_list['Status'] == '0':
-            data_list['DataStatus'] = data_status['abnormal']
-        for link_list in data_list['LinkFlows']:
+        if not json_dict['Status'] == 0:
+            json_dict['DataStatus'] = data_status['abnormal']
+        for link_list in json_dict['LinkFlows']:
             l_occupancy = 0
             l_speed = 0
             l_volume = 0
@@ -69,7 +75,7 @@ def vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
                     # 檢查流量，如異常則標註資料異常
                     if int(vehicle_list['Volume']) < flows_normal_range['volume_min'] or \
                             int(vehicle_list['Volume']) > flows_normal_range['volume_max']:
-                        data_list['DataStatus'] = data_status['abnormal']
+                        json_dict['DataStatus'] = data_status['abnormal']
                     # 合併各車種流量
                     if vehicle_list['VehicleType'] == 'M':
                         v_volume = v_volume + int(vehicle_list['Volume']) * m_pce
@@ -86,11 +92,11 @@ def vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
                 # 檢查速率，如異常則標註資料異常
                 if float(lane_list['Speed']) < flows_normal_range['speed_min'] or \
                         float(lane_list['Speed']) > flows_normal_range['speed_max']:
-                    data_list['DataStatus'] = data_status['abnormal']
+                    json_dict['DataStatus'] = data_status['abnormal']
                 # 檢查佔有率，如異常則標註資料異常
                 if float(lane_list['Occupancy']) < flows_normal_range['occupancy_min'] or \
                         float(lane_list['Occupancy']) > flows_normal_range['occupancy_max']:
-                    data_list['DataStatus'] = data_status['abnormal']
+                    json_dict['DataStatus'] = data_status['abnormal']
                 # 合併各車道
                 l_volume = l_volume + float(lane_list['Volume'])
                 l_speed = l_speed + float(lane_list['Speed']) * float(lane_list['Volume'])
@@ -106,13 +112,40 @@ def vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
             # 隱藏資料
             del_json_dict(json_dict=link_list, del_key='Lanes')
         # 轉換時間鍵值名稱
-        if 'DataCollectTime' in data_list:
-            data_list['Time'] = data_list['DataCollectTime']
-            del data_list['DataCollectTime']
+        if 'DataCollectTime' in json_dict:
+            json_dict['Time'] = json_dict['DataCollectTime']
+            del json_dict['DataCollectTime']
         # 隱藏資料
-        del_json_dict(json_dict=data_list, del_key='SubAuthorityCode')
-        del_json_dict(json_dict=data_list, del_key='Status')
+        del_json_dict(json_dict=json_dict, del_key='SubAuthorityCode')
+        del_json_dict(json_dict=json_dict, del_key='Status')
     return json_data
+
+
+# 異常VDLive合併車道車種資料處理
+def vdlive_data_slsu_abnormal_process(json_data, err_data):
+    new_json_data = []
+    for json_dict in json_data:
+        if json_dict['DataStatus'] == data_status['normal']:
+            new_json_data.append(json_dict)
+            continue
+        if not err_data == 1:
+            for link_list in json_dict['LinkFlows']:
+                link_list['Volume'] = REPLACE_VALUE
+                link_list['Speed'] = REPLACE_VALUE
+                link_list['Occupancy'] = REPLACE_VALUE
+            new_json_data.append(json_dict)
+    return new_json_data
+
+
+# VDLive缺漏時間填補處理
+def vdlive_data_null_time_process(json_dict, time):
+    json_dict['Time'] = time
+    for link_list in json_dict['LinkFlows']:
+        link_list['Volume'] = REPLACE_VALUE
+        link_list['Speed'] = REPLACE_VALUE
+        link_list['Occupancy'] = REPLACE_VALUE
+    json_dict['DataStatus'] = data_status['nodata']
+    return json_dict
 
 
 class Get_t2_one_record(Resource):
@@ -1039,7 +1072,7 @@ class Get_time_range_slsu(Resource):
             name: err_data
             type: int
             required: false
-            description: 數值資料異常處理模式(0:不做處理、1:清除資料、2:清除並填補[-1]、3:清除並修補數值)
+            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、3:清除並修補數值)
             enum: ['0', '1', '2', '3']
             default: 0
           - in: query
@@ -1124,14 +1157,55 @@ class Get_time_range_slsu(Resource):
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
+            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                             month=json_dict['DataCollectTime'].month,
+                                                             day=json_dict['DataCollectTime'].day,
+                                                             hour=json_dict['DataCollectTime'].hour,
+                                                             minute=json_dict['DataCollectTime'].minute,
+                                                             second=0,
+                                                             microsecond=0,
+                                                             tzinfo=json_dict['DataCollectTime'].tzinfo)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
         # 正常VDLive資料處理
         json_data = vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce)
 
-        # 異常資料不處理&缺漏時間不輸出
+        # 正常資料處理後，如異常資料不處理&缺漏時間不輸出則回傳
         if err_data == 0 and null_time == 0:
             output_json = json_data
+            return output_json, 200
+
+        # 異常VDLive資料處理
+        json_data = vdlive_data_slsu_abnormal_process(json_data, err_data)
+
+        # 異常資料處理後，如缺漏時間不輸出則回傳，否則進行時間填補
+        # 如採時間填補但又採用刪除異常資料，等同缺漏時間不輸出處理
+        if null_time == 0 or (err_data == 1 and null_time == 1):
+            output_json = json_data
+            return output_json, 200
+        else:
+            start_time = aniso8601.parse_datetime(sdate)
+            end_time = aniso8601.parse_datetime(edate)
+            step_range = datetime.timedelta(minutes=1)
+            new_json_data = []
+            for json_dict in json_data:
+                if not (json_dict['DataStatus'] == data_status['nodata']):
+                    json_dict_sample = copy.deepcopy(json_dict)
+                    break
+            while start_time <= end_time:
+                indict = False
+                for json_dict in json_data:
+                    if json_dict['Time'] == start_time.isoformat():
+                        new_json_data.append(json_dict)
+                        indict = True
+                        break
+                if not indict:
+                    json_dict = copy.deepcopy(vdlive_data_null_time_process(json_dict_sample, start_time.isoformat()))
+                    new_json_data.append(json_dict)
+                start_time = start_time + step_range
+            output_json = new_json_data
             return output_json, 200
 
         output_json = json_data
