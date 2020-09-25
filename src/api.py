@@ -16,7 +16,10 @@ api = Api(app)
 # flasgger UI: http://localhost:5000/apidocs
 swagger_config = Swagger.DEFAULT_CONFIG
 swagger_config['title'] = 'CECI-運輸大數據平台-V1'
-swagger_config['description'] = '路況資料整合系統'
+swagger_config['description'] = """
+● 路況資料整合系統
+● 本平台資料資料介接來源：「交通部即時路況與停車資訊流通平臺」https://traffic.transportdata.tw/
+"""
 swagger_config['version'] = '0.1.0'
 swagger_config['termsOfService'] = ''
 swagger = Swagger(app, config=swagger_config)
@@ -46,6 +49,8 @@ api.add_resource(Get_one_record_plsu,
                  "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<date>/method/per_lanes/sum_vehicles/")
 api.add_resource(Get_one_record_plpu,
                  "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<date>/method/per_lanes/per_vehicles/")
+api.add_resource(Get_time_range_slsu,
+                 "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<sdate>/to/<edate>/method/sum_lanes/sum_vehicles/")
 api.add_resource(Upload_batch,
                  "/v1/traffic_data/authority/<authority>/class/<dataclass>/standard/MOTC_traffic_v2/method/batch")
 api.add_resource(Upload_repeat_check,
