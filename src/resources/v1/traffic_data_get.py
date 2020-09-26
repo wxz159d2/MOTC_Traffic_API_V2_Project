@@ -5,8 +5,9 @@ import json
 
 import aniso8601
 from flask_restful import Resource, reqparse
-
 # 取代值
+from flask_restful.inputs import positive
+
 REPLACE_VALUE = -1
 
 dataclass_id = {
@@ -122,19 +123,19 @@ def vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
 
 
 # 異常VDLive合併車道車種資料處理
-def vdlive_data_slsu_abnormal_process(json_data, err_data):
-    new_json_data = []
+def vdlive_data_slsu_abnormal_process(json_data, error_process):
+    fulltime_json_data = []
     for json_dict in json_data:
         if json_dict['DataStatus'] == data_status['normal']:
-            new_json_data.append(json_dict)
+            fulltime_json_data.append(json_dict)
             continue
-        if not err_data == 1:
+        if not error_process == 1:
             for link_list in json_dict['LinkFlows']:
                 link_list['Volume'] = REPLACE_VALUE
                 link_list['Speed'] = REPLACE_VALUE
                 link_list['Occupancy'] = REPLACE_VALUE
-            new_json_data.append(json_dict)
-    return new_json_data
+            fulltime_json_data.append(json_dict)
+    return fulltime_json_data
 
 
 # VDLive缺漏時間填補處理
@@ -145,6 +146,15 @@ def vdlive_data_null_time_process(json_dict, time):
         link_list['Speed'] = REPLACE_VALUE
         link_list['Occupancy'] = REPLACE_VALUE
     json_dict['DataStatus'] = data_status['nodata']
+    return json_dict
+
+
+# VDLive缺漏時間檢查
+def vdlive_data_null_time_check(json_data, json_dict_sample, time):
+    for json_dict in json_data:
+        if json_dict['Time'] == time.isoformat():
+            return json_dict
+    json_dict = copy.deepcopy(vdlive_data_null_time_process(json_dict_sample, time.isoformat()))
     return json_dict
 
 
@@ -286,8 +296,8 @@ class Get_t2_time_range(Resource):
                                           'News'])
         self.parser.add_argument('format', type=str, default='JSON', required=False, help='Param error: Format',
                                  choices=['JSON', 'XML'])
-        self.parser.add_argument('sort', type=str, required=False, help='Param error: sort',
-                                 choices=['1', '-1'])
+        self.parser.add_argument('sort', type=int, required=False, help='Param error: sort',
+                                 choices=[1, -1])
 
     def get(self, dataclass, authority, oid, sdate, edate):
         """
@@ -340,10 +350,10 @@ class Get_t2_time_range(Resource):
             default: 'JSON'
           - in: query
             name: sort
-            type: string
+            type: int
             required: false
             description: 依資料時間排序(遞增：1、遞減：-1)
-            enum: ['1', '-1']
+            enum: [1, -1]
         responses:
           200:
             description: OK
@@ -385,8 +395,8 @@ class Get_t2_time_range(Resource):
             pipeline = pipeline + "        }"
             pipeline = pipeline + "    ]}"
             pipeline = pipeline + "}"
-            if sort == '1' or sort == '-1':
-                pipeline = "[" + pipeline + ",{'$sort':{'DataCollectTime':" + sort + "}}]"
+            if sort == 1 or sort == -1:
+                pipeline = "[" + pipeline + ",{'$sort':{'DataCollectTime':" + str(sort) + "}}]"
         else:
             # 靜態資料查詢管道指令 (News因採UpdateTime時間戳記，故以本方法處理)
             pipeline = pipeline + "{'$match':"
@@ -401,8 +411,8 @@ class Get_t2_time_range(Resource):
             pipeline = pipeline + "        }"
             pipeline = pipeline + "    ]}"
             pipeline = pipeline + "}"
-            if sort == '1' or sort == '-1':
-                pipeline = "[" + pipeline + ",{'$sort':{'UpdateTime':" + sort + "}}]"
+            if sort == 1 or sort == -1:
+                pipeline = "[" + pipeline + ",{'$sort':{'UpdateTime':" + str(sort) + "}}]"
 
         df = spark.read.format('mongo').option('uri', mongo_url_db) \
             .option('pipeline', pipeline).option('pipe', 'allowDiskUse=True').load()
@@ -437,13 +447,17 @@ class Get_one_record_slsu(Resource):
         self.parser.add_argument('s_pce', type=float, default=1.0, required=False, help='Param error: s_pce')
         self.parser.add_argument('l_pce', type=float, default=1.0, required=False, help='Param error: l_pce')
         self.parser.add_argument('t_pce', type=float, default=1.0, required=False, help='Param error: t_pce')
-        self.parser.add_argument('err_data', type=int, default=0, required=False, help='Param error: err_data')
+        self.parser.add_argument('error_check', type=int, default=1, required=False, help='Param error: error_check',
+                                 choices=[1, 2, 3])
+        self.parser.add_argument('error_process', type=int, default=0, required=False,
+                                 help='Param error: error_process',
+                                 choices=[0, 1, 2, 30, 31, 32])
 
     def get(self, authority, oid, date):
         """
         [單筆車流資料查詢][合併車道][合併車種]
         提供查詢指定VD設備及資料時間之單筆合併車道及車種之車流資料，並具車當量(PCE)轉換、異常資料排除、資料修補等功能
-        命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{date}/method/sum_lanes/sum_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}&err_data={err_data}
+        命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{date}/method/sum_lanes/sum_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}&error_check={error_check}&error_process={error_process}
         ---
         tags:
           - Traffic Data Query API (交通資料查詢API)
@@ -464,7 +478,7 @@ class Get_one_record_slsu(Resource):
             name: date
             type: string
             required: true
-            description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
+            description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
             default: '2020-08-18T17:50:00+08:00'
           - in: query
             name: format
@@ -476,33 +490,44 @@ class Get_one_record_slsu(Resource):
           - in: query
             name: m_pce
             type: float
+            minimum: 0
             required: false
             description: 機車當量
             default: 1.0
           - in: query
             name: s_pce
             type: float
+            minimum: 0
             required: false
             description: 小型車當量
             default: 1.0
           - in: query
             name: l_pce
             type: float
+            minimum: 0
             required: false
             description: 大型車當量
             default: 1.0
           - in: query
             name: t_pce
             type: float
+            minimum: 0
             required: false
             description: 連結車當量
             default: 1.0
           - in: query
-            name: err_data
+            name: error_check
             type: int
             required: false
-            description: 數值資料異常處理模式(0:不做處理、1:清除並填補[-1]、2:清除並修補數值)
-            enum: ['0', '1', '2']
+            description: 數值資料異常偵測模式(1:基本規則法、2:巨觀車流模式驗證法、3:AI辨識法)
+            enum: [1, 2, 3]
+            default: 1
+          - in: query
+            name: error_process
+            type: int
+            required: false
+            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、30:數值修補-線性插值法、31:數值修補-多項式插值法、32:數值修補-AI修補模式)
+            enum: [0, 1, 2, 30, 31, 32]
             default: 0
         responses:
           200:
@@ -520,7 +545,8 @@ class Get_one_record_slsu(Resource):
         s_pce = args['s_pce']
         l_pce = args['l_pce']
         t_pce = args['t_pce']
-        err_data = args['err_data']
+        error_check = args['error_check']
+        error_process = args['error_process']
 
         dataclass = 'VDLive'
 
@@ -552,25 +578,33 @@ class Get_one_record_slsu(Resource):
         json_data_list = df.toJSON().collect()
         json_data = []
 
-        # 查無資料回應
-        if len(json_data_list) == 0:
-            json_dict = {}
-            json_dict['VDID'] = oid
-            json_dict['Time'] = date
-            json_dict['DataStatus'] = data_status['nodata']
-            json_data.append(json_dict)
-
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
+            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            # 無條件捨去秒以下時間
+            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                             month=json_dict['DataCollectTime'].month,
+                                                             day=json_dict['DataCollectTime'].day,
+                                                             hour=json_dict['DataCollectTime'].hour,
+                                                             minute=json_dict['DataCollectTime'].minute,
+                                                             second=0,
+                                                             microsecond=0,
+                                                             tzinfo=json_dict['DataCollectTime'].tzinfo)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
         # 正常VDLive資料處理
         json_data = vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce)
 
         # 異常資料不處理
-        if err_data == 0:
+        if error_process == 0:
             output_json = json_data
+            return output_json, 200
+
+        # 異常資料不輸出
+        if error_process == 1:
+            output_json = []
             return output_json, 200
 
         output_json = json_data
@@ -635,24 +669,28 @@ class Get_one_record_slpu(Resource):
           - in: query
             name: m_pce
             type: float
+            minimum: 0
             required: false
             description: 機車當量
             default: 1.0
           - in: query
             name: s_pce
             type: float
+            minimum: 0
             required: false
             description: 小型車當量
             default: 1.0
           - in: query
             name: l_pce
             type: float
+            minimum: 0
             required: false
             description: 大型車當量
             default: 1.0
           - in: query
             name: t_pce
             type: float
+            minimum: 0
             required: false
             description: 連結車當量
             default: 1.0
@@ -769,24 +807,28 @@ class Get_one_record_plsu(Resource):
           - in: query
             name: m_pce
             type: float
+            minimum: 0
             required: false
             description: 機車當量
             default: 1.0
           - in: query
             name: s_pce
             type: float
+            minimum: 0
             required: false
             description: 小型車當量
             default: 1.0
           - in: query
             name: l_pce
             type: float
+            minimum: 0
             required: false
             description: 大型車當量
             default: 1.0
           - in: query
             name: t_pce
             type: float
+            minimum: 0
             required: false
             description: 連結車當量
             default: 1.0
@@ -903,24 +945,28 @@ class Get_one_record_plpu(Resource):
           - in: query
             name: m_pce
             type: float
+            minimum: 0
             required: false
             description: 機車當量
             default: 1.0
           - in: query
             name: s_pce
             type: float
+            minimum: 0
             required: false
             description: 小型車當量
             default: 1.0
           - in: query
             name: l_pce
             type: float
+            minimum: 0
             required: false
             description: 大型車當量
             default: 1.0
           - in: query
             name: t_pce
             type: float
+            minimum: 0
             required: false
             description: 連結車當量
             default: 1.0
@@ -999,16 +1045,25 @@ class Get_time_range_slsu(Resource):
         self.parser.add_argument('s_pce', type=float, default=1.0, required=False, help='Param error: s_pce')
         self.parser.add_argument('l_pce', type=float, default=1.0, required=False, help='Param error: l_pce')
         self.parser.add_argument('t_pce', type=float, default=1.0, required=False, help='Param error: t_pce')
-        self.parser.add_argument('err_data', type=int, default=0, required=False, help='Param error: err_data')
-        self.parser.add_argument('null_time', type=int, default=0, required=False, help='Param error: null_time')
-        self.parser.add_argument('sort', type=str, required=False, help='Param error: sort',
-                                 choices=['1', '-1'])
+        self.parser.add_argument('error_check', type=int, default=1, required=False, help='Param error: error_check',
+                                 choices=[1, 2, 3])
+        self.parser.add_argument('error_process', type=int, default=0, required=False,
+                                 help='Param error: error_process',
+                                 choices=[0, 1, 2, 30, 31, 32])
+        self.parser.add_argument('null_time', type=int, default=0, required=False, help='Param error: null_time',
+                                 choices=[0, 1])
+        self.parser.add_argument('time_interval', type=positive, default=1, required=False,
+                                 help='Param error: time_interval')
+        self.parser.add_argument('time_rolling', type=positive, default=1, required=False,
+                                 help='Param error: time_rolling')
+        self.parser.add_argument('sort', type=int, required=False, help='Param error: sort',
+                                 choices=[1, -1])
 
     def get(self, authority, oid, sdate, edate):
         """
         [時段車流資料查詢][合併車道][合併車種]
-        提供查詢指定VD設備及資料時段範圍之多筆合併車道及車種之車流資料，並具車當量(PCE)轉換、異常資料排除、資料修補等功能
-        命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{sdate}/to/{edate}/method/sum_lanes/sum_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}&err_data={err_data}&null_time={null_time}&sort={sort}
+        提供查詢指定VD設備及資料時段範圍之固定或滾動週期之多筆合併車道及車種之車流資料，並具車當量(PCE)轉換、異常資料排除、資料修補等功能
+        命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{sdate}/to/{edate}/method/sum_lanes/sum_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}&error_check={error_check}&error_process={error_process}&null_time={null_time}&time_interval={time_interval}&time_rolling={time_rolling}&sort={sort}
         ---
         tags:
           - Traffic Data Query API (交通資料查詢API)
@@ -1029,13 +1084,13 @@ class Get_time_range_slsu(Resource):
             name: sdate
             type: string
             required: true
-            description: 資料代表之開始時間(含)(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
+            description: 資料代表之開始時間(含)(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
             default: '2020-08-18T17:00:00+08:00'
           - in: path
             name: edate
             type: string
             required: true
-            description: 資料代表之結束時間(含)(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
+            description: 資料代表之結束時間(含)(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
             default: '2020-08-18T18:00:00+08:00'
           - in: query
             name: format
@@ -1047,47 +1102,72 @@ class Get_time_range_slsu(Resource):
           - in: query
             name: m_pce
             type: float
+            minimum: 0
             required: false
             description: 機車當量
             default: 1.0
           - in: query
             name: s_pce
             type: float
+            minimum: 0
             required: false
             description: 小型車當量
             default: 1.0
           - in: query
             name: l_pce
             type: float
+            minimum: 0
             required: false
             description: 大型車當量
             default: 1.0
           - in: query
             name: t_pce
             type: float
+            minimum: 0
             required: false
             description: 連結車當量
             default: 1.0
           - in: query
-            name: err_data
+            name: error_check
             type: int
             required: false
-            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、3:清除並修補數值)
-            enum: ['0', '1', '2', '3']
+            description: 數值資料異常偵測模式(1:基本規則法、2:巨觀車流模式驗證法、3:AI辨識法)
+            enum: [1, 2, 3]
+            default: 1
+          - in: query
+            name: error_process
+            type: int
+            required: false
+            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、30:數值修補-線性插值法、31:數值修補-多項式插值法、32:數值修補-AI修補模式)
+            enum: [0, 1, 2, 30, 31, 32]
             default: 0
           - in: query
             name: null_time
             type: int
             required: false
             description: 該時段無資料處理模式(0:不輸出、1:輸出並套用數值資料異常處理模式)
-            enum: ['0', '1']
+            enum: [0, 1]
             default: 0
           - in: query
+            name: time_interval
+            type: int
+            minimum: 1
+            required: false
+            description: 資料時間間隔長(分鐘)，例：設定5，則資料時間輸出為07:00、07:05、07:10...
+            default: 1
+          - in: query
+            name: time_rolling
+            type: int
+            minimum: 1
+            required: false
+            description: 資料滾動時段長(分鐘)，例：設定15、time_interval設定5，則輸出07:00資料為06:46至07:00之合併資料、07:05資料為06:51至07:05之合併資料(未修補的異常資料不納入計算)
+            default: 1
+          - in: query
             name: sort
-            type: string
+            type: int
             required: false
             description: 依資料時間排序(遞增：1、遞減：-1)
-            enum: ['1', '-1']
+            enum: [1, -1]
         responses:
           200:
             description: OK
@@ -1104,8 +1184,11 @@ class Get_time_range_slsu(Resource):
         s_pce = args['s_pce']
         l_pce = args['l_pce']
         t_pce = args['t_pce']
-        err_data = args['err_data']
+        error_check = args['error_check']
+        error_process = args['error_process']
         null_time = args['null_time']
+        time_interval = args['time_interval']
+        time_rolling = args['time_rolling']
         sort = args['sort']
 
         dataclass = 'VDLive'
@@ -1136,21 +1219,17 @@ class Get_time_range_slsu(Resource):
         pipeline = pipeline + "        }"
         pipeline = pipeline + "    ]}"
         pipeline = pipeline + "}"
-        if sort == '1' or sort == '-1':
-            pipeline = "[" + pipeline + ",{'$sort':{'DataCollectTime':" + sort + "}}]"
+        if sort == 1 or sort == -1:
+            pipeline = "[" + pipeline + ",{'$sort':{'DataCollectTime':" + str(sort) + "}}]"
 
         df = spark.read.format('mongo').option('uri', mongo_url_db) \
             .option('pipeline', pipeline).option('pipe', 'allowDiskUse=True').load()
         json_data_list = df.toJSON().collect()
+        # 原始資料表
         json_data = []
 
         # 查無資料回應
         if len(json_data_list) == 0:
-            json_dict = {}
-            json_dict['VDID'] = oid
-            json_dict['Time'] = sdate
-            json_dict['DataStatus'] = data_status['nodata']
-            json_data.append(json_dict)
             output_json = json_data
             return output_json, 200
 
@@ -1158,6 +1237,7 @@ class Get_time_range_slsu(Resource):
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
             json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            # 無條件捨去秒以下時間
             json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
                                                              month=json_dict['DataCollectTime'].month,
                                                              day=json_dict['DataCollectTime'].day,
@@ -1173,39 +1253,48 @@ class Get_time_range_slsu(Resource):
         json_data = vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce)
 
         # 正常資料處理後，如異常資料不處理&缺漏時間不輸出則回傳
-        if err_data == 0 and null_time == 0:
+        if error_process == 0 and null_time == 0:
             output_json = json_data
             return output_json, 200
 
         # 異常VDLive資料處理
-        json_data = vdlive_data_slsu_abnormal_process(json_data, err_data)
+        json_data = vdlive_data_slsu_abnormal_process(json_data, error_process)
+
+        # 時間填補後資料表
+        fulltime_json_data = []
 
         # 異常資料處理後，如缺漏時間不輸出則回傳，否則進行時間填補
         # 如採時間填補但又採用刪除異常資料，等同缺漏時間不輸出處理
-        if null_time == 0 or (err_data == 1 and null_time == 1):
+        if null_time == 0 or (error_process == 1 and null_time == 1):
             output_json = json_data
             return output_json, 200
         else:
+            # 於時間範圍內產生逐分鐘資料
             start_time = aniso8601.parse_datetime(sdate)
             end_time = aniso8601.parse_datetime(edate)
             step_range = datetime.timedelta(minutes=1)
-            new_json_data = []
+            # 滾動時段向前延伸
+            start_time = start_time - datetime.timedelta(minutes=time_rolling - 1)
+            json_dict_sample = {}
             for json_dict in json_data:
                 if not (json_dict['DataStatus'] == data_status['nodata']):
                     json_dict_sample = copy.deepcopy(json_dict)
                     break
             while start_time <= end_time:
-                indict = False
-                for json_dict in json_data:
-                    if json_dict['Time'] == start_time.isoformat():
-                        new_json_data.append(json_dict)
-                        indict = True
-                        break
-                if not indict:
-                    json_dict = copy.deepcopy(vdlive_data_null_time_process(json_dict_sample, start_time.isoformat()))
-                    new_json_data.append(json_dict)
+                fulltime_json_data.append(vdlive_data_null_time_check(json_data, json_dict_sample, start_time))
                 start_time = start_time + step_range
-            output_json = new_json_data
+            # 如採填補[-1]，則此階段輸出
+            if error_process == 2:
+                output_json = fulltime_json_data
+                if sort == -1:
+                    output_json.reverse()
+                return output_json, 200
+
+        # 滾動時段輸出處理
+        for index in range(len(fulltime_json_data)):
+            if index < time_rolling:
+                continue
+            output_json = fulltime_json_data
             return output_json, 200
 
         output_json = json_data
