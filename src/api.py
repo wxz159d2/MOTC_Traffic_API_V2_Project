@@ -20,7 +20,7 @@ swagger_config['description'] = """
 ● 路況資料整合系統
 ● 本平台資料資料介接來源：「交通部即時路況與停車資訊流通平臺」https://traffic.transportdata.tw/
 """
-swagger_config['version'] = '0.1.0'
+swagger_config['version'] = '0.1.0-bate'
 swagger_config['termsOfService'] = ''
 swagger = Swagger(app, config=swagger_config)
 
@@ -41,15 +41,15 @@ api.add_resource(Get_t2_one_record,
                  "/v1/traffic_data/authority/<authority>/class/<dataclass>/oid/<oid>/date/<date>/standard/MOTC_traffic_v2/")
 api.add_resource(Get_t2_time_range,
                  "/v1/traffic_data/authority/<authority>/class/<dataclass>/oid/<oid>/date/<sdate>/to/<edate>/standard/MOTC_traffic_v2/")
-api.add_resource(Get_one_record_slsu,
+api.add_resource(Get_one_record_slsv,
                  "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<date>/method/sum_lanes/sum_vehicles/")
-api.add_resource(Get_one_record_slpu,
+api.add_resource(Get_one_record_slpv,
                  "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<date>/method/sum_lanes/per_vehicles/")
-api.add_resource(Get_one_record_plsu,
+api.add_resource(Get_one_record_plsv,
                  "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<date>/method/per_lanes/sum_vehicles/")
-api.add_resource(Get_one_record_plpu,
+api.add_resource(Get_one_record_plpv,
                  "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<date>/method/per_lanes/per_vehicles/")
-api.add_resource(Get_time_range_slsu,
+api.add_resource(Get_time_range_slsv,
                  "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<sdate>/to/<edate>/method/sum_lanes/sum_vehicles/")
 api.add_resource(Upload_batch,
                  "/v1/traffic_data/authority/<authority>/class/<dataclass>/standard/MOTC_traffic_v2/method/batch")

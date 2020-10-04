@@ -59,12 +59,12 @@ def del_json_dict(json_dict, del_key):
 
 
 # 正常VDLive合併車道車種資料處理
-def vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
+def vdlive_data_slsv_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
     for json_dict in json_data:
         # 標註資料狀態(先假設正常)
         json_dict['DataStatus'] = data_status['normal']
         # 檢查設備狀態，如異常則標註資料異常
-        if not json_dict['Status'] == 0:
+        if not (json_dict['Status'] == 0 or json_dict['Status'] == '0'):
             json_dict['DataStatus'] = data_status['abnormal']
         for link_list in json_dict['LinkFlows']:
             l_occupancy = 0
@@ -123,7 +123,7 @@ def vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
 
 
 # 異常VDLive合併車道車種資料處理
-def vdlive_data_slsu_abnormal_process(json_data, error_process):
+def vdlive_data_slsv_abnormal_process(json_data, error_process):
     fulltime_json_data = []
     for json_dict in json_data:
         if json_dict['DataStatus'] == data_status['normal']:
@@ -436,7 +436,7 @@ class Get_t2_time_range(Resource):
         pass
 
 
-class Get_one_record_slsu(Resource):
+class Get_one_record_slsv(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
@@ -595,7 +595,7 @@ class Get_one_record_slsu(Resource):
             json_data.append(json_dict)
 
         # 正常VDLive資料處理
-        json_data = vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce)
+        json_data = vdlive_data_slsv_normal_process(json_data, m_pce, s_pce, l_pce, t_pce)
 
         # 異常資料不處理
         if error_process == 0:
@@ -620,7 +620,7 @@ class Get_one_record_slsu(Resource):
         pass
 
 
-class Get_one_record_slpu(Resource):
+class Get_one_record_slpv(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
@@ -758,7 +758,7 @@ class Get_one_record_slpu(Resource):
         pass
 
 
-class Get_one_record_plsu(Resource):
+class Get_one_record_plsv(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
@@ -896,7 +896,7 @@ class Get_one_record_plsu(Resource):
         pass
 
 
-class Get_one_record_plpu(Resource):
+class Get_one_record_plpv(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
@@ -1034,7 +1034,7 @@ class Get_one_record_plpu(Resource):
         pass
 
 
-class Get_time_range_slsu(Resource):
+class Get_time_range_slsv(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('authority', type=str, required=False, help='Param error: authority',
@@ -1160,7 +1160,7 @@ class Get_time_range_slsu(Resource):
             type: int
             minimum: 1
             required: false
-            description: 資料滾動時段長(分鐘)，例：設定15、time_interval設定5，則輸出07:00資料為06:46至07:00之合併資料、07:05資料為06:51至07:05之合併資料(未修補的異常資料不納入計算)
+            description: 資料滾動時段長(分鐘)，例：設定15、time_interval設定5，則輸出07:00資料為06:46至07:00之有效資料合併、07:05資料為06:51至07:05之有效資料合併。有效資料為正常或數值修補後資料，如滾動時段內皆無有效資料則套用時段無資料及數值資料異常處理模式
             default: 1
           - in: query
             name: sort
@@ -1190,6 +1190,9 @@ class Get_time_range_slsu(Resource):
         time_interval = args['time_interval']
         time_rolling = args['time_rolling']
         sort = args['sort']
+
+        # 滾動時段向前延伸
+        sdate = (aniso8601.parse_datetime(sdate) - datetime.timedelta(minutes=time_rolling - 1)).isoformat()
 
         dataclass = 'VDLive'
 
@@ -1250,22 +1253,24 @@ class Get_time_range_slsu(Resource):
             json_data.append(json_dict)
 
         # 正常VDLive資料處理
-        json_data = vdlive_data_slsu_normal_process(json_data, m_pce, s_pce, l_pce, t_pce)
+        json_data = vdlive_data_slsv_normal_process(json_data, m_pce, s_pce, l_pce, t_pce)
 
         # 正常資料處理後，如異常資料不處理&缺漏時間不輸出則回傳
-        if error_process == 0 and null_time == 0:
+        if (time_interval == 1 and time_rolling == 1) and (error_process == 0 and null_time == 0):
             output_json = json_data
             return output_json, 200
 
         # 異常VDLive資料處理
-        json_data = vdlive_data_slsu_abnormal_process(json_data, error_process)
+        json_data = vdlive_data_slsv_abnormal_process(json_data, error_process)
 
         # 時間填補後資料表
         fulltime_json_data = []
+        # 正常資料樣板
+        json_dict_sample = {}
 
         # 異常資料處理後，如缺漏時間不輸出則回傳，否則進行時間填補
         # 如採時間填補但又採用刪除異常資料，等同缺漏時間不輸出處理
-        if null_time == 0 or (error_process == 1 and null_time == 1):
+        if (time_interval == 1 and time_rolling == 1) and (null_time == 0 or (error_process == 1 and null_time == 1)):
             output_json = json_data
             return output_json, 200
         else:
@@ -1273,29 +1278,96 @@ class Get_time_range_slsu(Resource):
             start_time = aniso8601.parse_datetime(sdate)
             end_time = aniso8601.parse_datetime(edate)
             step_range = datetime.timedelta(minutes=1)
-            # 滾動時段向前延伸
-            start_time = start_time - datetime.timedelta(minutes=time_rolling - 1)
-            json_dict_sample = {}
+            # 複製一份正常資料樣板
             for json_dict in json_data:
                 if not (json_dict['DataStatus'] == data_status['nodata']):
                     json_dict_sample = copy.deepcopy(json_dict)
+                    for link_list in json_dict_sample['LinkFlows']:
+                        link_list['Volume'] = REPLACE_VALUE
+                        link_list['Speed'] = REPLACE_VALUE
+                        link_list['Occupancy'] = REPLACE_VALUE
                     break
+            # 時間填補程序
             while start_time <= end_time:
                 fulltime_json_data.append(vdlive_data_null_time_check(json_data, json_dict_sample, start_time))
                 start_time = start_time + step_range
             # 如採填補[-1]，則此階段輸出
-            if error_process == 2:
+            if (time_interval == 1 and time_rolling == 1) and error_process == 2:
                 output_json = fulltime_json_data
                 if sort == -1:
                     output_json.reverse()
                 return output_json, 200
 
+        # 滾動處理後資料表
+        rolling_json_data = []
+
         # 滾動時段輸出處理
         for index in range(len(fulltime_json_data)):
-            if index < time_rolling:
+            if index < time_rolling - 1:
                 continue
-            output_json = fulltime_json_data
-            return output_json, 200
+            if index % time_interval == (time_interval - 1):
+                json_dict_temp = {}
+                effective_cont = 0
+                nodata_cont = 0
+                for rolling_index in range(index - (time_rolling - 1), index + 1):
+                    if len(json_dict_temp) == 0 and \
+                            (fulltime_json_data[rolling_index]['DataStatus'] == data_status['normal'] or
+                             fulltime_json_data[rolling_index]['DataStatus'] == data_status['repair']):
+                        # 第一筆待合併資料
+                        json_dict_temp = fulltime_json_data[rolling_index]
+                        for linkflows_list in json_dict_temp['LinkFlows']:
+                            # 轉為加權速度
+                            linkflows_list['Speed'] = linkflows_list['Speed'] * linkflows_list['Volume']
+                        effective_cont = effective_cont + 1
+                    elif len(json_dict_temp) > 0 and \
+                            (fulltime_json_data[rolling_index]['DataStatus'] == data_status['normal'] or
+                             fulltime_json_data[rolling_index]['DataStatus'] == data_status['repair']):
+                        # 其他合併資料處理
+                        for linkflows_list in json_dict_temp['LinkFlows']:
+                            for linkflows_list_temp in fulltime_json_data[rolling_index]['LinkFlows']:
+                                if linkflows_list['LinkID'] == linkflows_list_temp['LinkID']:
+                                    # 計算流量和
+                                    linkflows_list['Volume'] = linkflows_list['Volume'] + linkflows_list_temp['Volume']
+                                    # 轉為加權速度
+                                    if not linkflows_list_temp['Volume'] == 0:
+                                        linkflows_list['Speed'] = linkflows_list['Speed'] + \
+                                                                  linkflows_list_temp['Speed'] * \
+                                                                  linkflows_list_temp['Volume']
+                                    # 計算佔有率和
+                                    linkflows_list['Occupancy'] = linkflows_list['Occupancy'] + \
+                                                                  linkflows_list_temp['Occupancy']
+                        if fulltime_json_data[rolling_index]['DataStatus'] == data_status['repair']:
+                            json_dict_temp['DataStatus'] = data_status['repair']
+                        effective_cont = effective_cont + 1
+                    elif fulltime_json_data[rolling_index]['DataStatus'] == data_status['nodata']:
+                        nodata_cont = nodata_cont + 1
+                # 滾動時段內皆無有效資料，標示異常
+                if len(json_dict_temp) == 0:
+                    if error_process == 2:
+                        json_dict_temp = json_dict_sample
+                    if nodata_cont == 0:
+                        json_dict_temp['DataStatus'] = data_status['abnormal']
+                    else:
+                        json_dict_temp['DataStatus'] = data_status['nodata']
+                else:
+                    for linkflows_list in json_dict_temp['LinkFlows']:
+                        if linkflows_list['Volume'] == 0:
+                            linkflows_list['Speed'] = 0
+                        else:
+                            linkflows_list['Speed'] = linkflows_list['Speed'] / linkflows_list['Volume']
+                        linkflows_list['Occupancy'] = linkflows_list['Occupancy'] / effective_cont
+                # 資料押上輸出時段
+                json_dict_temp['Time'] = fulltime_json_data[index]['Time']
+                if json_dict_temp['DataStatus'] == data_status['nodata'] or \
+                        json_dict_temp['DataStatus'] == data_status['abnormal']:
+                    if not (error_process == 1 or null_time == 0):
+                        rolling_json_data.append(json_dict_temp)
+                else:
+                    rolling_json_data.append(json_dict_temp)
+        output_json = rolling_json_data
+        if sort == -1:
+            output_json.reverse()
+        return output_json, 200
 
         output_json = json_data
         return output_json, 200
