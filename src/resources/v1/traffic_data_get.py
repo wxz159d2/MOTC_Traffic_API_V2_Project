@@ -234,7 +234,6 @@ class Get_t2_one_record(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark讀取語法
         from api import spark
@@ -263,7 +262,12 @@ class Get_t2_one_record(Resource):
             pipeline = pipeline + "    ]}"
             pipeline = pipeline + "}"
 
-        df = spark.read.format('mongo').option('uri', mongo_url_db).option('pipeline', pipeline).load()
+        df = spark.read.format('mongo') \
+            .option('uri', mongo_url) \
+            .option("database", database) \
+            .option("collection", collection) \
+            .option('pipeline', pipeline) \
+            .load()
         json_data_list = df.toJSON().collect()
         json_data = []
         for values in json_data_list:
@@ -375,7 +379,6 @@ class Get_t2_time_range(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark讀取語法
         from api import spark
@@ -414,8 +417,12 @@ class Get_t2_time_range(Resource):
             if sort == 1 or sort == -1:
                 pipeline = "[" + pipeline + ",{'$sort':{'UpdateTime':" + str(sort) + "}}]"
 
-        df = spark.read.format('mongo').option('uri', mongo_url_db) \
-            .option('pipeline', pipeline).option('pipe', 'allowDiskUse=True').load()
+        df = spark.read.format('mongo') \
+            .option('uri', mongo_url) \
+            .option("database", database) \
+            .option("collection", collection) \
+            .option('pipeline', pipeline) \
+            .option('pipe', 'allowDiskUse=True').load()
         json_data_list = df.toJSON().collect()
         json_data = []
         for values in json_data_list:
@@ -557,7 +564,6 @@ class Get_one_record_slsv(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark讀取語法
         from api import spark
@@ -574,7 +580,12 @@ class Get_one_record_slsv(Resource):
         pipeline = pipeline + "    ]}"
         pipeline = pipeline + "}"
 
-        df = spark.read.format('mongo').option('uri', mongo_url_db).option('pipeline', pipeline).load()
+        df = spark.read.format('mongo') \
+            .option('uri', mongo_url) \
+            .option("database", database) \
+            .option("collection", collection) \
+            .option('pipeline', pipeline) \
+            .load()
         json_data_list = df.toJSON().collect()
         json_data = []
 
@@ -720,7 +731,6 @@ class Get_one_record_slpv(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark讀取語法
         from api import spark
@@ -737,7 +747,12 @@ class Get_one_record_slpv(Resource):
         pipeline = pipeline + "    ]}"
         pipeline = pipeline + "}"
 
-        df = spark.read.format('mongo').option('uri', mongo_url_db).option('pipeline', pipeline).load()
+        df = spark.read.format('mongo') \
+            .option('uri', mongo_url) \
+            .option("database", database) \
+            .option("collection", collection) \
+            .option('pipeline', pipeline) \
+            .load()
         json_data_list = df.toJSON().collect()
         json_data = []
         for values in json_data_list:
@@ -858,7 +873,6 @@ class Get_one_record_plsv(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark讀取語法
         from api import spark
@@ -875,7 +889,12 @@ class Get_one_record_plsv(Resource):
         pipeline = pipeline + "    ]}"
         pipeline = pipeline + "}"
 
-        df = spark.read.format('mongo').option('uri', mongo_url_db).option('pipeline', pipeline).load()
+        df = spark.read.format('mongo') \
+            .option('uri', mongo_url) \
+            .option("database", database) \
+            .option("collection", collection) \
+            .option('pipeline', pipeline) \
+            .load()
         json_data_list = df.toJSON().collect()
         json_data = []
         for values in json_data_list:
@@ -996,7 +1015,6 @@ class Get_one_record_plpv(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark讀取語法
         from api import spark
@@ -1013,7 +1031,12 @@ class Get_one_record_plpv(Resource):
         pipeline = pipeline + "    ]}"
         pipeline = pipeline + "}"
 
-        df = spark.read.format('mongo').option('uri', mongo_url_db).option('pipeline', pipeline).load()
+        df = spark.read.format('mongo') \
+            .option('uri', mongo_url) \
+            .option("database", database) \
+            .option("collection", collection) \
+            .option('pipeline', pipeline) \
+            .load()
         json_data_list = df.toJSON().collect()
         json_data = []
         for values in json_data_list:
@@ -1203,7 +1226,6 @@ class Get_time_range_slsv(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark讀取語法
         from api import spark
@@ -1225,8 +1247,13 @@ class Get_time_range_slsv(Resource):
         if sort == 1 or sort == -1:
             pipeline = "[" + pipeline + ",{'$sort':{'DataCollectTime':" + str(sort) + "}}]"
 
-        df = spark.read.format('mongo').option('uri', mongo_url_db) \
-            .option('pipeline', pipeline).option('pipe', 'allowDiskUse=True').load()
+        df = spark.read.format('mongo') \
+            .option('uri', mongo_url) \
+            .option("database", database) \
+            .option("collection", collection) \
+            .option('pipeline', pipeline) \
+            .option('pipe', 'allowDiskUse=True') \
+            .load()
         json_data_list = df.toJSON().collect()
         # 原始資料表
         json_data = []

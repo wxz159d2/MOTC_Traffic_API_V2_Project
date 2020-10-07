@@ -19,6 +19,7 @@ swagger_config['title'] = 'CECI-運輸大數據平台-V1'
 swagger_config['description'] = """
 ● 路況資料整合系統
 ● 本平台資料資料介接來源：「交通部即時路況與停車資訊流通平臺」https://traffic.transportdata.tw/
+● 聯絡人：平台系統問題及異常回報-電機部 王翔正(ext.3018) wxz159d2@ceci.com.tw
 """
 swagger_config['version'] = '0.1.0-bate'
 swagger_config['termsOfService'] = ''
@@ -26,13 +27,18 @@ swagger = Swagger(app, config=swagger_config)
 
 # Spark連接MongoDB設定
 # mongo url格式是："mongodb://IP:Port/database.collection"
-mongo_url = 'mongodb://127.0.0.1:27017/'
+token_file = open('token', mode='r')
+token = token_file.readline()
+token_file.close()
+mongo_url = 'mongodb://tbdUSER:' + token + '@127.0.0.1:27017/?authMechanism=SCRAM-SHA-1'
 # 要把mongo-spark-connector_2.12-3.0.0.jar和mongo-java-driver-3.12.6.jar放在\pyspark\jars裡
 # spark UI: http://localhost:4041/
 spark = SparkSession.builder \
     .master("local[*]") \
     .appName("CECI_traffic_data") \
     .config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector_2.12:3.0.0") \
+    .config("spark.default.parallelism", 2) \
+    .config("spark.driver.memory", "8g") \
     .getOrCreate()
 sc = spark.sparkContext
 

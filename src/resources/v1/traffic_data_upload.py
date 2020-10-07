@@ -115,7 +115,6 @@ class Upload_batch(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark寫入語法
         # 輸入JSON文件
@@ -128,7 +127,12 @@ class Upload_batch(Resource):
                 one_record.update({'UpdateTime': update_time})
         df = spark.read.json(sc.parallelize(one_records))
         try:
-            df.write.format('mongo').mode('append').option('uri', mongo_url_db).save()
+            df.write.format('mongo') \
+                .mode('append') \
+                .option('uri', mongo_url) \
+                .option("database", database) \
+                .option("collection", collection) \
+                .save()
         except Py4JJavaError as e:
             message = convert_exception(e.java_exception)
         message = 'upload succeeded'
@@ -207,7 +211,6 @@ class Upload_repeat_check(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark寫入語法
         # 輸入JSON文件
@@ -220,7 +223,12 @@ class Upload_repeat_check(Resource):
                 one_record.update({'UpdateTime': update_time})
             df = spark.read.json(sc.parallelize([one_record]))
             try:
-                df.write.format('mongo').mode('append').option('uri', mongo_url_db).save()
+                df.write.format('mongo') \
+                    .mode('append') \
+                    .option('uri', mongo_url) \
+                    .option("database", database) \
+                    .option("collection", collection) \
+                    .save()
             except Py4JJavaError as e:
                 message = convert_exception(e.java_exception)
         message = 'upload succeeded'
@@ -299,14 +307,18 @@ class Upload_one_record_live(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark寫入語法
         # 輸入JSON文件
         one_record = request.get_json()
         df = spark.read.json(sc.parallelize([one_record]))
         try:
-            df.write.format('mongo').mode('append').option('uri', mongo_url_db).save()
+            df.write.format('mongo') \
+                .mode('append') \
+                .option('uri', mongo_url) \
+                .option("database", database) \
+                .option("collection", collection) \
+                .save()
         except Py4JJavaError as e:
             message = convert_exception(e.java_exception)
         message = 'upload succeeded'
@@ -389,7 +401,6 @@ class Upload_one_record_static(Resource):
         # MongoDB連結設定參數處理
         database = 'traffic_data_' + authority_lower
         collection = dataclass_lower
-        mongo_url_db = mongo_url + database + '.' + collection
 
         # pyspark寫入語法
         # 輸入JSON文件
@@ -398,7 +409,12 @@ class Upload_one_record_static(Resource):
         one_record.update({'UpdateTime': update_time})
         df = spark.read.json(sc.parallelize([one_record]))
         try:
-            df.write.format('mongo').mode('append').option('uri', mongo_url_db).save()
+            df.write.format('mongo') \
+                .mode('append') \
+                .option('uri', mongo_url) \
+                .option("database", database) \
+                .option("collection", collection) \
+                .save()
         except Py4JJavaError as e:
             message = convert_exception(e.java_exception)
         message = 'upload succeeded'
