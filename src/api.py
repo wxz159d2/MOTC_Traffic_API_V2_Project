@@ -1,8 +1,8 @@
 # -*- coding: UTF-8 -*-
-
 from flasgger import Swagger
 from flask import Flask
 from flask_restful import Api
+from pymongo import MongoClient
 from pyspark.sql import SparkSession
 
 from resources.v1.traffic_data_converter import *
@@ -30,15 +30,25 @@ swagger = Swagger(app, config=swagger_config)
 token_file = open('token', mode='r')
 token = token_file.readline()
 token_file.close()
-mongo_url = 'mongodb://tbdUSER:' + token + '@127.0.0.1:27017/?authMechanism=SCRAM-SHA-1'
+mongo_settings = {
+    'MONGO_HOST': '127.0.0.1',
+    'MONGO_PORT': '27017',
+    'MONGO_DB': '',
+    'MONGO_USER': 'tbdUSER',
+    'MONGO_PSW': token,
+    'MONGO_MACH': 'SCRAM-SHA-1',
+}
+mongo_url = 'mongodb://' + mongo_settings['MONGO_USER'] + ':' + mongo_settings['MONGO_PSW'] + '@' \
+            + mongo_settings['MONGO_HOST'] + ':' + mongo_settings['MONGO_PORT'] \
+            + '/?authMechanism=' + mongo_settings['MONGO_MACH']
+mongo_client = MongoClient(mongo_url)
+
 # 要把mongo-spark-connector_2.12-3.0.0.jar和mongo-java-driver-3.12.6.jar放在\pyspark\jars裡
 # spark UI: http://localhost:4041/
 spark = SparkSession.builder \
     .master("local[*]") \
     .appName("CECI_traffic_data") \
     .config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector_2.12:3.0.0") \
-    .config("spark.default.parallelism", 2) \
-    .config("spark.driver.memory", "8g") \
     .getOrCreate()
 sc = spark.sparkContext
 
@@ -59,8 +69,8 @@ api.add_resource(Get_time_range_slsv,
                  "/v1/traffic_data/authority/<authority>/oid/<oid>/date/<sdate>/to/<edate>/method/sum_lanes/sum_vehicles/")
 api.add_resource(Upload_batch,
                  "/v1/traffic_data/authority/<authority>/class/<dataclass>/standard/MOTC_traffic_v2/method/batch")
-api.add_resource(Upload_repeat_check,
-                 "/v1/traffic_data/authority/<authority>/class/<dataclass>/standard/MOTC_traffic_v2/method/repeat_check")
+# api.add_resource(Upload_repeat_check,
+#                  "/v1/traffic_data/authority/<authority>/class/<dataclass>/standard/MOTC_traffic_v2/method/repeat_check")
 api.add_resource(Upload_one_record_live,
                  "/v1/traffic_data/authority/<authority>/class/<dataclass>/standard/MOTC_traffic_v2/method/one_record")
 api.add_resource(Upload_one_record_static,
