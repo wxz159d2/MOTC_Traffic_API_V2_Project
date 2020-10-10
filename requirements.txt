@@ -3,6 +3,6 @@ setuptools==49.3.1
 Flask==1.1.2
 Flask-RESTful==0.3.8
 flasgger==0.9.5
-Flask-PyMongo==2.3.0
+pymongo==3.10.1
 pyspark==3.0.0
 xmltodict==0.12.0
