@@ -50,7 +50,6 @@ COPY /src/ /usr/src/
 
 # Exposing Ports
 EXPOSE 5000
-EXPOSE 4041
 
 # Setting Persistent data
 #VOLUME ["/app-data"]

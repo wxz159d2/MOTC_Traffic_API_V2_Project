@@ -31,7 +31,10 @@ token_file = open('token', mode='r')
 token = token_file.readline()
 token_file.close()
 mongo_settings = {
-    'MONGO_HOST': '127.0.0.1',
+    # test host
+    # 'MONGO_HOST': '127.0.0.1',
+    # k8s host
+    'MONGO_HOST': 'mongodb',
     'MONGO_PORT': '27017',
     'MONGO_DB': '',
     'MONGO_USER': 'tbdUSER',
