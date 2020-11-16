@@ -1,10 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-node-deployment
+  name: flask-cecitd-deployment
 spec:
+  type: NodePort
   ports:
     - port: 5000
-      targetPort: 5000
+      targetPort: 31001
   selector:
-    app: flasknode
+    app: flask-cecitd

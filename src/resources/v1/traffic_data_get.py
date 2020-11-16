@@ -5,9 +5,9 @@ import json
 
 import aniso8601
 from flask_restful import Resource, reqparse
-# 取代值
 from flask_restful.inputs import positive
 
+# 取代值
 REPLACE_VALUE = -1
 
 dataclass_id = {
@@ -211,7 +211,7 @@ class Get_t2_one_record(Resource):
             name: format
             type: string
             required: false
-            description: 資料格式(支援JSON、XML)
+            description: 資料格式(支援JSON、XML[開發中])
             enum: ['JSON', 'XML']
             default: 'JSON'
         responses:
@@ -349,7 +349,7 @@ class Get_t2_time_range(Resource):
             name: format
             type: string
             required: false
-            description: 資料格式(支援JSON、XML)
+            description: 資料格式(支援JSON、XML[開發中])
             enum: ['JSON', 'XML']
             default: 'JSON'
           - in: query
@@ -491,7 +491,7 @@ class Get_one_record_slsv(Resource):
             name: format
             type: string
             required: false
-            description: 資料格式(支援JSON、XML)
+            description: 資料格式(支援JSON、XML[開發中])
             enum: ['JSON', 'XML']
             default: 'JSON'
           - in: query
@@ -526,14 +526,14 @@ class Get_one_record_slsv(Resource):
             name: error_check
             type: int
             required: false
-            description: 數值資料異常偵測模式(1:基本規則法、2:巨觀車流模式驗證法、3:AI辨識法)
-            enum: [1, 2, 3]
+            description: 數值資料異常偵測模式(1:基本規則法、2:AI辨識法[開發中])
+            enum: [1, 2]
             default: 1
           - in: query
             name: error_process
             type: int
             required: false
-            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、30:數值修補-線性插值法、31:數值修補-多項式插值法、32:數值修補-AI修補模式)
+            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、30:數值修補-線性插值法[開發中]、31:數值修補-多項式插值法[開發中]、32:數值修補-AI修補模式[開發中])
             enum: [0, 1, 2, 30, 31, 32]
             default: 0
         responses:
@@ -645,7 +645,7 @@ class Get_one_record_slpv(Resource):
 
     def get(self, authority, oid, date):
         """
-        [單筆車流資料查詢][合併車道][各別車種]
+        [單筆車流資料查詢][合併車道][各別車種]-[開發中]
         提供查詢指定VD設備及資料時間之單筆合併車道及各別車種之車流資料，並具車當量(PCE)轉換功能
         命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{date}/method/sum_lanes/per_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}
         ---
@@ -674,7 +674,7 @@ class Get_one_record_slpv(Resource):
             name: format
             type: string
             required: false
-            description: 資料格式(支援JSON、XML)
+            description: 資料格式(支援JSON、XML[開發中])
             enum: ['JSON', 'XML']
             default: 'JSON'
           - in: query
@@ -787,7 +787,7 @@ class Get_one_record_plsv(Resource):
 
     def get(self, authority, oid, date):
         """
-        [單筆車流資料查詢][各別車道][合併車種]
+        [單筆車流資料查詢][各別車道][合併車種]-[開發中]
         提供查詢指定VD設備及資料時間之單筆各別車道及合併車種之車流資料，並具車當量(PCE)轉換功能
         命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{date}/method/per_lanes/sum_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}
         ---
@@ -816,7 +816,7 @@ class Get_one_record_plsv(Resource):
             name: format
             type: string
             required: false
-            description: 資料格式(支援JSON、XML)
+            description: 資料格式(支援JSON、XML[開發中])
             enum: ['JSON', 'XML']
             default: 'JSON'
           - in: query
@@ -929,7 +929,7 @@ class Get_one_record_plpv(Resource):
 
     def get(self, authority, oid, date):
         """
-        [單筆車流資料查詢][各別車道][各別車種]
+        [單筆車流資料查詢][各別車道][各別車種]-[開發中]
         提供查詢指定VD設備及資料時間之單筆各別車道及車種之車流資料，並具車當量(PCE)轉換功能
         命令格式： /v1/traffic_data/authority/{authority}/oid/{oid}/date/{date}/method/per_lanes/per_vehicles/?format={format}&m_pce={m_pce}&s_pce={s_pce}&l_pce={l_pce}&t_pce={t_pce}
         ---
@@ -958,7 +958,7 @@ class Get_one_record_plpv(Resource):
             name: format
             type: string
             required: false
-            description: 資料格式(支援JSON、XML)
+            description: 資料格式(支援JSON、XML[開發中])
             enum: ['JSON', 'XML']
             default: 'JSON'
           - in: query
@@ -1119,7 +1119,7 @@ class Get_time_range_slsv(Resource):
             name: format
             type: string
             required: false
-            description: 資料格式(支援JSON、XML)
+            description: 資料格式(支援JSON、XML[開發中])
             enum: ['JSON', 'XML']
             default: 'JSON'
           - in: query
@@ -1154,14 +1154,14 @@ class Get_time_range_slsv(Resource):
             name: error_check
             type: int
             required: false
-            description: 數值資料異常偵測模式(1:基本規則法、2:巨觀車流模式驗證法、3:AI辨識法)
-            enum: [1, 2, 3]
+            description: 數值資料異常偵測模式(1:基本規則法、2:AI辨識法[開發中])
+            enum: [1, 2]
             default: 1
           - in: query
             name: error_process
             type: int
             required: false
-            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、30:數值修補-線性插值法、31:數值修補-多項式插值法、32:數值修補-AI修補模式)
+            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、30:數值修補-線性插值法[開發中]、31:數值修補-多項式插值法[開發中]、32:數值修補-AI修補模式[開發中])
             enum: [0, 1, 2, 30, 31, 32]
             default: 0
           - in: query
