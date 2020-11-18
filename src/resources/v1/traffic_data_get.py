@@ -455,7 +455,7 @@ class Get_one_record_slsv(Resource):
         self.parser.add_argument('l_pce', type=float, default=1.0, required=False, help='Param error: l_pce')
         self.parser.add_argument('t_pce', type=float, default=1.0, required=False, help='Param error: t_pce')
         self.parser.add_argument('error_check', type=int, default=1, required=False, help='Param error: error_check',
-                                 choices=[1, 2, 3])
+                                 choices=[1, 2])
         self.parser.add_argument('error_process', type=int, default=0, required=False,
                                  help='Param error: error_process',
                                  choices=[0, 1, 2, 30, 31, 32])
@@ -1069,7 +1069,7 @@ class Get_time_range_slsv(Resource):
         self.parser.add_argument('l_pce', type=float, default=1.0, required=False, help='Param error: l_pce')
         self.parser.add_argument('t_pce', type=float, default=1.0, required=False, help='Param error: t_pce')
         self.parser.add_argument('error_check', type=int, default=1, required=False, help='Param error: error_check',
-                                 choices=[1, 2, 3])
+                                 choices=[1, 2])
         self.parser.add_argument('error_process', type=int, default=0, required=False,
                                  help='Param error: error_process',
                                  choices=[0, 1, 2, 30, 31, 32])
