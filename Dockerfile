@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.9.1
 
 MAINTAINER wxz159d2@ceci.com.tw
 
@@ -54,8 +54,10 @@ WORKDIR /usr/
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY mongo-spark-connector_2.12-3.0.0.jar /usr/local/lib/python3.9/site-packages/pyspark/jars
-COPY mongo-java-driver-3.12.6.jar /usr/local/lib/python3.9/site-packages/pyspark/jars
+COPY mongo-java-driver-3.12.6.jar ${SPARK_HOME}/jars
+COPY mongo-spark-connector_2.12-3.0.0.jar ${SPARK_HOME}/jars
+COPY mongodb-driver-sync-4.0.5.jar ${SPARK_HOME}/jars
+COPY sbson-4.0.5.jar ${SPARK_HOME}/jars
 
 # Copying src code to Container
 COPY /src/ /usr/src/
@@ -69,5 +71,7 @@ EXPOSE 5000
 # Setting Persistent data
 #VOLUME ["/app-data"]
 
+WORKDIR /usr/src/
+
 # Running Python Application
-CMD ["python", "./src/api.py"]
+CMD ["python", "./api.py"]

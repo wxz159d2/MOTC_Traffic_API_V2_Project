@@ -27,7 +27,7 @@ swagger = Swagger(app, config=swagger_config)
 
 # Spark連接MongoDB設定
 # mongo url格式是："mongodb://IP:Port/database.collection"
-token_file = open('token', mode='r')
+token_file = open('./token', mode='r')
 token = token_file.readline()
 token_file.close()
 mongo_settings = {
@@ -47,11 +47,12 @@ mongo_url = 'mongodb://' + mongo_settings['MONGO_USER'] + ':' + mongo_settings['
 mongo_client = MongoClient(mongo_url)
 
 # 要把mongo-spark-connector_2.12-3.0.0.jar和mongo-java-driver-3.12.6.jar放在\pyspark\jars裡
+# 線上環境可用自動配置 .config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector_2.12:3.0.0")
 # spark UI: http://localhost:4041/
 spark = SparkSession.builder \
     .master("local[*]") \
     .appName("CECI_traffic_data") \
-    .config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector_2.12:3.0.0") \
+    .config("spark.jars", "/usr/local/spark/jars/mongo-spark-connector_2.12-3.0.0.jar,/usr/local/spark/jars/mongodb-driver-sync-4.0.5.jar,/usr/local/spark/jars/sbson-4.0.5.jar") \
     .getOrCreate()
 sc = spark.sparkContext
 

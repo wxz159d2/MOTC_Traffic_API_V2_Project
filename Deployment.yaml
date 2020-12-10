@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: flask-cecitd-deployment
@@ -7,6 +7,11 @@ spec:
   selector:
     matchLabels:
       app: flask-cecitd
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   template:
     metadata:
       labels:
@@ -14,7 +19,9 @@ spec:
     spec:
       containers:
         - name: flask-cecitd
-          image: 10.34.188.29:5000/flask-cecitd
-          imagePullPolicy: Always
+          image: 10.34.188.29/library/traffic:0.1.0
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 31001
+      imagePullSecrets:
+      - name: my-secret
