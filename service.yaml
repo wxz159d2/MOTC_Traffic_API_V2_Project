@@ -6,6 +6,7 @@ spec:
   type: NodePort
   ports:
     - port: 5000
-      targetPort: 31001
+      targetPort: 5000
+      nodePort: 31001
   selector:
     app: flask-cecitd
