@@ -26,10 +26,8 @@ db.news.createIndex({"NewsID":1,"UpdateTime":1},{unique: true})
 import aniso8601
 from flask import request
 from flask_restful import Resource, reqparse
-from py4j.protocol import Py4JJavaError
 from pymongo import UpdateOne
 from pymongo.errors import BulkWriteError
-from pyspark.sql.utils import convert_exception
 
 dataclass_record = {
     'VD': 'VDs',
