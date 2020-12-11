@@ -52,7 +52,8 @@ mongo_client = MongoClient(mongo_url)
 spark = SparkSession.builder \
     .master("local[*]") \
     .appName("CECI_traffic_data") \
-    .config("spark.jars", "/usr/local/spark/jars/mongo-spark-connector_2.12-3.0.0.jar,/usr/local/spark/jars/mongodb-driver-sync-4.0.5.jar,/usr/local/spark/jars/sbson-4.0.5.jar") \
+    .config("spark.jars",
+            "/usr/local/spark/jars/mongo-spark-connector_2.12-3.0.0.jar,/usr/local/spark/jars/mongodb-driver-sync-4.0.5.jar,/usr/local/spark/jars/bson-4.0.5.jar,/usr/local/spark/jars/mongo-java-driver-3.12.6.jar") \
     .getOrCreate()
 sc = spark.sparkContext
 
