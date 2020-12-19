@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: flask-cecitd
-          image: 10.34.188.29/library/traffic:0.1.1
+          image: 10.34.188.29/library/traffic:0.1.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 31001

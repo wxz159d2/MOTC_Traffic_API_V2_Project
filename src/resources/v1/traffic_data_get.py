@@ -2,6 +2,7 @@
 import copy
 import datetime
 import json
+from zoneinfo import ZoneInfo
 
 import aniso8601
 from flask_restful import Resource, reqparse
@@ -273,6 +274,16 @@ class Get_t2_one_record(Resource):
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
+            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                             month=json_dict['DataCollectTime'].month,
+                                                             day=json_dict['DataCollectTime'].day,
+                                                             hour=json_dict['DataCollectTime'].hour,
+                                                             minute=json_dict['DataCollectTime'].minute,
+                                                             second=json_dict['DataCollectTime'].second,
+                                                             microsecond=json_dict['DataCollectTime'].microsecond,
+                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
         output_json = json_data
@@ -428,6 +439,16 @@ class Get_t2_time_range(Resource):
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
+            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                             month=json_dict['DataCollectTime'].month,
+                                                             day=json_dict['DataCollectTime'].day,
+                                                             hour=json_dict['DataCollectTime'].hour,
+                                                             minute=json_dict['DataCollectTime'].minute,
+                                                             second=json_dict['DataCollectTime'].second,
+                                                             microsecond=json_dict['DataCollectTime'].microsecond,
+                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
         output_json = json_data
@@ -601,7 +622,7 @@ class Get_one_record_slsv(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=0,
                                                              microsecond=0,
-                                                             tzinfo=json_dict['DataCollectTime'].tzinfo)
+                                                             tzinfo=ZoneInfo('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
@@ -758,6 +779,16 @@ class Get_one_record_slpv(Resource):
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
+            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                             month=json_dict['DataCollectTime'].month,
+                                                             day=json_dict['DataCollectTime'].day,
+                                                             hour=json_dict['DataCollectTime'].hour,
+                                                             minute=json_dict['DataCollectTime'].minute,
+                                                             second=json_dict['DataCollectTime'].second,
+                                                             microsecond=json_dict['DataCollectTime'].microsecond,
+                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
         output_json = json_data
@@ -900,6 +931,16 @@ class Get_one_record_plsv(Resource):
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
+            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                             month=json_dict['DataCollectTime'].month,
+                                                             day=json_dict['DataCollectTime'].day,
+                                                             hour=json_dict['DataCollectTime'].hour,
+                                                             minute=json_dict['DataCollectTime'].minute,
+                                                             second=json_dict['DataCollectTime'].second,
+                                                             microsecond=json_dict['DataCollectTime'].microsecond,
+                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
         output_json = json_data
@@ -1042,6 +1083,16 @@ class Get_one_record_plpv(Resource):
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
+            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                             month=json_dict['DataCollectTime'].month,
+                                                             day=json_dict['DataCollectTime'].day,
+                                                             hour=json_dict['DataCollectTime'].hour,
+                                                             minute=json_dict['DataCollectTime'].minute,
+                                                             second=json_dict['DataCollectTime'].second,
+                                                             microsecond=json_dict['DataCollectTime'].microsecond,
+                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
         output_json = json_data
@@ -1275,7 +1326,7 @@ class Get_time_range_slsv(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=0,
                                                              microsecond=0,
-                                                             tzinfo=json_dict['DataCollectTime'].tzinfo)
+                                                             tzinfo=ZoneInfo('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
