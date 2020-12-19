@@ -2,7 +2,7 @@
 import copy
 import datetime
 import json
-from zoneinfo import ZoneInfo
+import pytz
 
 import aniso8601
 from flask_restful import Resource, reqparse
@@ -282,7 +282,8 @@ class Get_t2_one_record(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=json_dict['DataCollectTime'].second,
                                                              microsecond=json_dict['DataCollectTime'].microsecond,
-                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+                                                             tzinfo=datetime.timezone.utc)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
@@ -447,7 +448,8 @@ class Get_t2_time_range(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=json_dict['DataCollectTime'].second,
                                                              microsecond=json_dict['DataCollectTime'].microsecond,
-                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+                                                             tzinfo=datetime.timezone.utc)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
@@ -622,7 +624,8 @@ class Get_one_record_slsv(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=0,
                                                              microsecond=0,
-                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+                                                             tzinfo=datetime.timezone.utc)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
@@ -787,7 +790,8 @@ class Get_one_record_slpv(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=json_dict['DataCollectTime'].second,
                                                              microsecond=json_dict['DataCollectTime'].microsecond,
-                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+                                                             tzinfo=datetime.timezone.utc)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
@@ -939,7 +943,8 @@ class Get_one_record_plsv(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=json_dict['DataCollectTime'].second,
                                                              microsecond=json_dict['DataCollectTime'].microsecond,
-                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+                                                             tzinfo=datetime.timezone.utc)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
@@ -1091,7 +1096,8 @@ class Get_one_record_plpv(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=json_dict['DataCollectTime'].second,
                                                              microsecond=json_dict['DataCollectTime'].microsecond,
-                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+                                                             tzinfo=datetime.timezone.utc)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 
@@ -1326,7 +1332,8 @@ class Get_time_range_slsv(Resource):
                                                              minute=json_dict['DataCollectTime'].minute,
                                                              second=0,
                                                              microsecond=0,
-                                                             tzinfo=ZoneInfo('Asia/Taipei'))
+                                                             tzinfo=datetime.timezone.utc)
+            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
 

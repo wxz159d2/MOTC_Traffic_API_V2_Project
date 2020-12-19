@@ -26,7 +26,7 @@ swagger_config['description'] = """
 ● 本平台資料資料介接來源：「交通部即時路況與停車資訊流通平臺」https://traffic.transportdata.tw/
 ● 聯絡人：平台系統問題及異常回報-電機部 王翔正(ext.3018) wxz159d2@ceci.com.tw
 """
-swagger_config['version'] = '0.1.2-bate'
+swagger_config['version'] = '0.1.3-bate'
 swagger_config['termsOfService'] = ''
 swagger = Swagger(app, config=swagger_config)
 
