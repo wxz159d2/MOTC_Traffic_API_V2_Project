@@ -434,7 +434,7 @@ class Upload_one_record_static(Resource):
             type: string
             required: true
             description: 資料代表之時間(靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-13T10:49:00+08:00'
+            default: '2020-12-20T15:00:00+08:00'
           - in: body
             name: data
             required: true

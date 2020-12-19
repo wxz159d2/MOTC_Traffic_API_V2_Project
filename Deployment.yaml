@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask-cecitd-deployment
+  name: cecitd
 spec:
   replicas: 1
   selector:
@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: flask-cecitd
-          image: 10.34.188.29/library/traffic:0.1.0
+          image: 10.34.188.29/library/traffic:0.1.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 31001

@@ -200,13 +200,13 @@ class Get_t2_one_record(Resource):
             type: string
             required: true
             description: 設備、資料之ID
-            default: 'VD-N3-S-300.000-N-Loop'
+            default: 'VD-N5-N-29.000-M-LOOP'
           - in: path
             name: date
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-18T17:50:00+08:00'
+            default: '2020-12-20T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -332,19 +332,19 @@ class Get_t2_time_range(Resource):
             type: string
             required: true
             description: 設備、資料之ID
-            default: 'VD-N3-S-300.000-N-Loop'
+            default: 'VD-N5-N-29.000-M-LOOP'
           - in: path
             name: sdate
             type: string
             required: true
             description: 資料代表之開始時間(含)(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-18T17:00:00+08:00'
+            default: '2020-12-20T15:00:00+08:00'
           - in: path
             name: edate
             type: string
             required: true
             description: 資料代表之結束時間(含)(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-18T18:00:00+08:00'
+            default: '2020-12-20T19:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -480,13 +480,13 @@ class Get_one_record_slsv(Resource):
             type: string
             required: true
             description: 設備、資料之ID
-            default: 'VD-N3-S-300.000-N-Loop'
+            default: 'VD-N5-N-29.000-M-LOOP'
           - in: path
             name: date
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-08-18T17:50:00+08:00'
+            default: '2020-12-20T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -663,13 +663,13 @@ class Get_one_record_slpv(Resource):
             type: string
             required: true
             description: 設備、資料之ID
-            default: 'VD-N3-S-300.000-N-Loop'
+            default: 'VD-N5-N-29.000-M-LOOP'
           - in: path
             name: date
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-18T17:50:00+08:00'
+            default: '2020-12-20T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -805,13 +805,13 @@ class Get_one_record_plsv(Resource):
             type: string
             required: true
             description: 設備、資料之ID
-            default: 'VD-N3-S-300.000-N-Loop'
+            default: 'VD-N5-N-29.000-M-LOOP'
           - in: path
             name: date
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-18T17:50:00+08:00'
+            default: '2020-12-20T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -947,13 +947,13 @@ class Get_one_record_plpv(Resource):
             type: string
             required: true
             description: 設備、資料之ID
-            default: 'VD-N3-S-300.000-N-Loop'
+            default: 'VD-N5-N-29.000-M-LOOP'
           - in: path
             name: date
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-08-18T17:50:00+08:00'
+            default: '2020-12-20T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -1102,19 +1102,19 @@ class Get_time_range_slsv(Resource):
             type: string
             required: true
             description: 設備、資料之ID
-            default: 'VD-N3-S-300.000-N-Loop'
+            default: 'VD-N5-N-29.000-M-LOOP'
           - in: path
             name: sdate
             type: string
             required: true
             description: 資料代表之開始時間(含)(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-08-18T17:00:00+08:00'
+            default: '2020-12-20T15:00:00+08:00'
           - in: path
             name: edate
             type: string
             required: true
             description: 資料代表之結束時間(含)(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-08-18T18:00:00+08:00'
+            default: '2020-12-20T19:00:00+08:00'
           - in: query
             name: format
             type: string

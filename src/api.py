@@ -1,4 +1,6 @@
 # -*- coding: UTF-8 -*-
+import logging
+
 from flasgger import Swagger
 from flask import Flask
 from flask_restful import Api
@@ -8,6 +10,9 @@ from pyspark.sql import SparkSession
 from resources.v1.traffic_data_converter import *
 from resources.v1.traffic_data_get import *
 from resources.v1.traffic_data_upload import *
+
+FORMAT = '%(asctime)s %(levelname)s: %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 app = Flask(__name__)
 api = Api(app)
@@ -21,7 +26,7 @@ swagger_config['description'] = """
 ● 本平台資料資料介接來源：「交通部即時路況與停車資訊流通平臺」https://traffic.transportdata.tw/
 ● 聯絡人：平台系統問題及異常回報-電機部 王翔正(ext.3018) wxz159d2@ceci.com.tw
 """
-swagger_config['version'] = '0.1.0-bate'
+swagger_config['version'] = '0.1.1-bate'
 swagger_config['termsOfService'] = ''
 swagger = Swagger(app, config=swagger_config)
 
