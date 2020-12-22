@@ -2,9 +2,9 @@
 import copy
 import datetime
 import json
-import pytz
 
 import aniso8601
+import pytz
 from flask_restful import Resource, reqparse
 from flask_restful.inputs import positive
 
@@ -274,17 +274,30 @@ class Get_t2_one_record(Resource):
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
-            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
-            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
-                                                             month=json_dict['DataCollectTime'].month,
-                                                             day=json_dict['DataCollectTime'].day,
-                                                             hour=json_dict['DataCollectTime'].hour,
-                                                             minute=json_dict['DataCollectTime'].minute,
-                                                             second=json_dict['DataCollectTime'].second,
-                                                             microsecond=json_dict['DataCollectTime'].microsecond,
-                                                             tzinfo=datetime.timezone.utc)
-            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
-            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
+            if 'Live' in dataclass:
+                json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+                json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                                 month=json_dict['DataCollectTime'].month,
+                                                                 day=json_dict['DataCollectTime'].day,
+                                                                 hour=json_dict['DataCollectTime'].hour,
+                                                                 minute=json_dict['DataCollectTime'].minute,
+                                                                 second=json_dict['DataCollectTime'].second,
+                                                                 microsecond=json_dict['DataCollectTime'].microsecond,
+                                                                 tzinfo=datetime.timezone.utc)
+                json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
+                json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
+            else:
+                json_dict['UpdateTime'] = aniso8601.parse_datetime(json_dict['UpdateTime'])
+                json_dict['UpdateTime'] = datetime.datetime(year=json_dict['UpdateTime'].year,
+                                                            month=json_dict['UpdateTime'].month,
+                                                            day=json_dict['UpdateTime'].day,
+                                                            hour=json_dict['UpdateTime'].hour,
+                                                            minute=json_dict['UpdateTime'].minute,
+                                                            second=json_dict['UpdateTime'].second,
+                                                            microsecond=json_dict['UpdateTime'].microsecond,
+                                                            tzinfo=datetime.timezone.utc)
+                json_dict['UpdateTime'] = json_dict['UpdateTime'].astimezone(pytz.timezone('Asia/Taipei'))
+                json_dict['UpdateTime'] = json_dict['UpdateTime'].isoformat()
             json_data.append(json_dict)
 
         output_json = json_data
@@ -440,17 +453,30 @@ class Get_t2_time_range(Resource):
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
-            json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
-            json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
-                                                             month=json_dict['DataCollectTime'].month,
-                                                             day=json_dict['DataCollectTime'].day,
-                                                             hour=json_dict['DataCollectTime'].hour,
-                                                             minute=json_dict['DataCollectTime'].minute,
-                                                             second=json_dict['DataCollectTime'].second,
-                                                             microsecond=json_dict['DataCollectTime'].microsecond,
-                                                             tzinfo=datetime.timezone.utc)
-            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
-            json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
+            if 'Live' in dataclass:
+                json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+                json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
+                                                                 month=json_dict['DataCollectTime'].month,
+                                                                 day=json_dict['DataCollectTime'].day,
+                                                                 hour=json_dict['DataCollectTime'].hour,
+                                                                 minute=json_dict['DataCollectTime'].minute,
+                                                                 second=json_dict['DataCollectTime'].second,
+                                                                 microsecond=json_dict['DataCollectTime'].microsecond,
+                                                                 tzinfo=datetime.timezone.utc)
+                json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
+                json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
+            else:
+                json_dict['UpdateTime'] = aniso8601.parse_datetime(json_dict['UpdateTime'])
+                json_dict['UpdateTime'] = datetime.datetime(year=json_dict['UpdateTime'].year,
+                                                            month=json_dict['UpdateTime'].month,
+                                                            day=json_dict['UpdateTime'].day,
+                                                            hour=json_dict['UpdateTime'].hour,
+                                                            minute=json_dict['UpdateTime'].minute,
+                                                            second=json_dict['UpdateTime'].second,
+                                                            microsecond=json_dict['UpdateTime'].microsecond,
+                                                            tzinfo=datetime.timezone.utc)
+                json_dict['UpdateTime'] = json_dict['UpdateTime'].astimezone(pytz.timezone('Asia/Taipei'))
+                json_dict['UpdateTime'] = json_dict['UpdateTime'].isoformat()
             json_data.append(json_dict)
 
         output_json = json_data
