@@ -24,4 +24,4 @@ spec:
           ports:
             - containerPort: 31001
       imagePullSecrets:
-      - name: my-secret
+        - name: my-secret
