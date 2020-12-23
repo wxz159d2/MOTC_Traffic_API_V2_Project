@@ -1462,11 +1462,16 @@ class Get_time_range_slsv(Resource):
                         json_dict_temp['DataStatus'] = data_status['nodata']
                 else:
                     for linkflows_list in json_dict_temp['LinkFlows']:
+                        # 無流量則速率為0 (未來加入自由流速路分析功能再補上)
                         if linkflows_list['Volume'] == 0:
                             linkflows_list['Speed'] = 0
                         else:
+                            # 平均速率計算
                             linkflows_list['Speed'] = linkflows_list['Speed'] / linkflows_list['Volume']
+                        # 平均佔有率計算
                         linkflows_list['Occupancy'] = linkflows_list['Occupancy'] / effective_cont
+                        # 總流量計算，如有缺漏資料，以有效資料依比例放大
+                        linkflows_list['Volume'] = (linkflows_list['Volume'] / effective_cont) * time_rolling
                 # 資料押上輸出時段
                 json_dict_temp['Time'] = fulltime_json_data[index]['Time']
                 if json_dict_temp['DataStatus'] == data_status['nodata'] or \
