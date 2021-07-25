@@ -123,6 +123,70 @@ def vdlive_data_slsv_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
     return json_data
 
 
+# 正常VDLive合併車道各別車種資料處理[開發中]20210725改到一半
+def vdlive_data_slpv_normal_process(json_data, m_pce, s_pce, l_pce, t_pce):
+    for json_dict in json_data:
+        # 標註資料狀態(先假設正常)
+        json_dict['DataStatus'] = data_status['normal']
+        # 檢查設備狀態，如異常則標註資料異常
+        if not (json_dict['Status'] == 0 or json_dict['Status'] == '0'):
+            json_dict['DataStatus'] = data_status['abnormal']
+        for link_list in json_dict['LinkFlows']:
+            l_occupancy = 0
+            l_speed = 0
+            l_volume = 0
+            for lane_list in link_list['Lanes']:
+                v_volume = 0
+                for vehicle_list in lane_list['Vehicles']:
+                    # 檢查流量，如異常則標註資料異常
+                    if int(vehicle_list['Volume']) < flows_normal_range['volume_min'] or \
+                            int(vehicle_list['Volume']) > flows_normal_range['volume_max']:
+                        json_dict['DataStatus'] = data_status['abnormal']
+                    # # 合併各車種流量
+                    # if vehicle_list['VehicleType'] == 'M':
+                    #     v_volume = v_volume + int(vehicle_list['Volume']) * m_pce
+                    # elif vehicle_list['VehicleType'] == 'S':
+                    #     v_volume = v_volume + int(vehicle_list['Volume']) * s_pce
+                    # elif vehicle_list['VehicleType'] == 'L':
+                    #     v_volume = v_volume + int(vehicle_list['Volume']) * l_pce
+                    # elif vehicle_list['VehicleType'] == 'T':
+                    #     v_volume = v_volume + int(vehicle_list['Volume']) * t_pce
+                    # else:
+                    #     v_volume = v_volume + int(vehicle_list['Volume']) * 1
+                lane_list['Volume'] = v_volume
+                del_json_dict(json_dict=lane_list, del_key='Vehicles')
+                # 檢查速率，如異常則標註資料異常
+                if float(lane_list['Speed']) < flows_normal_range['speed_min'] or \
+                        float(lane_list['Speed']) > flows_normal_range['speed_max']:
+                    json_dict['DataStatus'] = data_status['abnormal']
+                # 檢查佔有率，如異常則標註資料異常
+                if float(lane_list['Occupancy']) < flows_normal_range['occupancy_min'] or \
+                        float(lane_list['Occupancy']) > flows_normal_range['occupancy_max']:
+                    json_dict['DataStatus'] = data_status['abnormal']
+                # 合併各車道
+                l_volume = l_volume + float(lane_list['Volume'])
+                l_speed = l_speed + float(lane_list['Speed']) * float(lane_list['Volume'])
+                l_occupancy = l_occupancy + float(lane_list['Occupancy'])
+            if l_volume > 0:
+                l_speed = l_speed / l_volume
+            if len(link_list['Lanes']) > 0:
+                l_occupancy = l_occupancy / len(link_list['Lanes'])
+            # 呈現資料
+            link_list['Volume'] = l_volume
+            link_list['Speed'] = l_speed
+            link_list['Occupancy'] = l_occupancy
+            # 隱藏資料
+            del_json_dict(json_dict=link_list, del_key='Lanes')
+        # 轉換時間鍵值名稱
+        if 'DataCollectTime' in json_dict:
+            json_dict['Time'] = json_dict['DataCollectTime']
+            del json_dict['DataCollectTime']
+        # 隱藏資料
+        del_json_dict(json_dict=json_dict, del_key='SubAuthorityCode')
+        del_json_dict(json_dict=json_dict, del_key='Status')
+    return json_data
+
+
 # 異常VDLive合併車道車種資料處理
 def vdlive_data_slsv_abnormal_process(json_data, error_process):
     fulltime_json_data = []
@@ -207,7 +271,7 @@ class Get_t2_one_record(Resource):
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-12-20T15:00:00+08:00'
+            default: '2021-01-01T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -363,13 +427,13 @@ class Get_t2_time_range(Resource):
             type: string
             required: true
             description: 資料代表之開始時間(含)(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-12-20T15:00:00+08:00'
+            default: '2021-01-01T15:00:00+08:00'
           - in: path
             name: edate
             type: string
             required: true
             description: 資料代表之結束時間(含)(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-12-20T19:00:00+08:00'
+            default: '2021-01-01T19:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -535,7 +599,7 @@ class Get_one_record_slsv(Resource):
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-12-20T15:00:00+08:00'
+            default: '2021-01-01T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -719,7 +783,7 @@ class Get_one_record_slpv(Resource):
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-12-20T15:00:00+08:00'
+            default: '2021-01-01T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -755,6 +819,20 @@ class Get_one_record_slpv(Resource):
             required: false
             description: 連結車當量
             default: 1.0
+          - in: query
+            name: error_check
+            type: int
+            required: false
+            description: 數值資料異常偵測模式(1:基本規則法、2:AI辨識法[開發中])
+            enum: [1, 2]
+            default: 1
+          - in: query
+            name: error_process
+            type: int
+            required: false
+            description: 數值資料異常處理模式(0:不做處理、1:刪除資料、2:清除並填補[-1]、30:數值修補-線性插值法[開發中]、31:數值修補-多項式插值法[開發中]、32:數值修補-AI修補模式[開發中])
+            enum: [0, 1, 2, 30, 31, 32]
+            default: 0
         responses:
           200:
             description: OK
@@ -771,6 +849,8 @@ class Get_one_record_slpv(Resource):
         s_pce = args['s_pce']
         l_pce = args['l_pce']
         t_pce = args['t_pce']
+        error_check = args['error_check']
+        error_process = args['error_process']
 
         dataclass = 'VDLive'
 
@@ -805,21 +885,36 @@ class Get_one_record_slpv(Resource):
             .load()
         json_data_list = df.toJSON().collect()
         json_data = []
+
         for values in json_data_list:
             json_dict = json.loads(values)
             del json_dict['_id']  # 刪除momgo的資料編號
             json_dict['DataCollectTime'] = aniso8601.parse_datetime(json_dict['DataCollectTime'])
+            # 無條件捨去秒以下時間
             json_dict['DataCollectTime'] = datetime.datetime(year=json_dict['DataCollectTime'].year,
                                                              month=json_dict['DataCollectTime'].month,
                                                              day=json_dict['DataCollectTime'].day,
                                                              hour=json_dict['DataCollectTime'].hour,
                                                              minute=json_dict['DataCollectTime'].minute,
-                                                             second=json_dict['DataCollectTime'].second,
-                                                             microsecond=json_dict['DataCollectTime'].microsecond,
+                                                             second=0,
+                                                             microsecond=0,
                                                              tzinfo=datetime.timezone.utc)
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].astimezone(pytz.timezone('Asia/Taipei'))
             json_dict['DataCollectTime'] = json_dict['DataCollectTime'].isoformat()
             json_data.append(json_dict)
+
+        # 正常VDLive資料處理
+        json_data = vdlive_data_slpv_normal_process(json_data, m_pce, s_pce, l_pce, t_pce)
+
+        # 異常資料不處理
+        if error_process == 0:
+            output_json = json_data
+            return output_json, 200
+
+        # 異常資料不輸出
+        if error_process == 1:
+            output_json = []
+            return output_json, 200
 
         output_json = json_data
         return output_json, 200
@@ -872,7 +967,7 @@ class Get_one_record_plsv(Resource):
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-12-20T15:00:00+08:00'
+            default: '2021-01-01T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -1025,7 +1120,7 @@ class Get_one_record_plpv(Resource):
             type: string
             required: true
             description: 資料代表之時間(動態資料參照欄位：DataCollectTime、靜態資料參照欄位：UpdateTime)[格式：ISO8601]
-            default: '2020-12-20T15:00:00+08:00'
+            default: '2021-01-01T15:00:00+08:00'
           - in: query
             name: format
             type: string
@@ -1191,13 +1286,13 @@ class Get_time_range_slsv(Resource):
             type: string
             required: true
             description: 資料代表之開始時間(含)(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-12-20T15:00:00+08:00'
+            default: '2021-01-01T15:00:00+08:00'
           - in: path
             name: edate
             type: string
             required: true
             description: 資料代表之結束時間(含)(動態資料參照欄位：DataCollectTime)[格式：ISO8601]
-            default: '2020-12-20T19:00:00+08:00'
+            default: '2021-01-01T19:00:00+08:00'
           - in: query
             name: format
             type: string
